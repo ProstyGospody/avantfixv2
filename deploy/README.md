@@ -177,6 +177,12 @@ journalctl -u avantfix-lead -n 20 --no-pager
 Если письма нет, в журнале будет ответ SMTP-сервера — по нему видно,
 что не так: логин, пароль, порт или адрес.
 
+Проверить только авторизацию, ничего не отправляя:
+
+```bash
+set -a; . /etc/avantfix/lead.env; set +a; node /opt/avantfix/mail-check.mjs
+```
+
 Отправка своя, без зависимостей — [mailer.mjs](mailer.mjs). Телеграм
 в коде есть и включается парой переменных `TELEGRAM_TOKEN`
 и `TELEGRAM_CHAT_ID` в `lead.env`, но сейчас не спрашивается

@@ -166,7 +166,7 @@ chown -R "$DEPLOY_USER:$DEPLOY_USER" /srv/avantfix /var/www/avantfix
 note "$(runuser -u "$DEPLOY_USER" -- git -C "$REPO_DIR" log -1 --format='%h %s')"
 
 say "Приём заявок"
-install -m 644 "$HERE/lead-service.mjs" "$HERE/mailer.mjs" /opt/avantfix/
+install -m 644 "$HERE/lead-service.mjs" "$HERE/mailer.mjs" "$HERE/mail-check.mjs" /opt/avantfix/
 install -m 644 "$HERE/avantfix-lead.service" /etc/systemd/system/
 install -m 755 "$HERE/update.sh" /usr/local/bin/avantfix-update
 systemctl daemon-reload

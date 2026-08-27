@@ -85,10 +85,10 @@ export async function sendMail({ subject, body }, config = mailConfig()) {
 
     socket.on(secure ? 'secureConnect' : 'connect', async () => {
       const talk = dialogue(socket);
-      const say = async (line, expected) => {
+      const say = async (line, expected, label) => {
         if (line !== null) talk.send(line);
         const answer = await talk.expect();
-        if (!expected.test(answer)) throw new Error(`${line ?? 'приветствие'} → ${answer}`);
+        if (!expected.test(answer)) throw new Error(`${label ?? line ?? 'приветствие'} → ${answer}`);
         return answer;
       };
 
@@ -98,14 +98,14 @@ export async function sendMail({ subject, body }, config = mailConfig()) {
 
         if (user) {
           await say('AUTH LOGIN', /^334 /);
-          await say(Buffer.from(user, 'utf8').toString('base64'), /^334 /);
-          await say(Buffer.from(pass, 'utf8').toString('base64'), /^235 /);
+          await say(Buffer.from(user, 'utf8').toString('base64'), /^334 /, `логин ${user}`);
+          await say(Buffer.from(pass, 'utf8').toString('base64'), /^235 /, 'пароль');
         }
 
         await say(`MAIL FROM:<${from}>`, /^250 /);
         for (const address of to) await say(`RCPT TO:<${address}>`, /^250 /);
         await say('DATA', /^354 /);
-        await say(letter({ from, to, subject, body }) + '\r\n.', /^250 /);
+        await say(letter({ from, to, subject, body }) + '\r\n.', /^250 /, 'письмо');
         talk.send('QUIT');
         done();
       } catch (err) {
