@@ -3,7 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import ApplianceIcon from '@/components/ApplianceIcon.astro';
 import { APPLIANCES } from '@/data/appliances';
 import { CITY } from '@/lib/city';
-import { WARRANTY } from '@/config/site';
+import { BRAND, WARRANTY } from '@/config/site';
 import { minWorkPrice } from '@/lib/pricing';
 import { price, telHref } from '@/lib/format';
 
@@ -34,7 +34,7 @@ const next = [
 ---
 
 <BaseLayout
-  title="Заявка принята"
+  title={`Заявка принята — ${BRAND.name} ${CITY.inPrep}`}
   description="Заявка на вызов мастера принята. Рассказываем, что будет дальше и в какие сроки."
   noindex
   hasForm={false}

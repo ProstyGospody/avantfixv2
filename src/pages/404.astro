@@ -3,6 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import ApplianceIcon from '@/components/ApplianceIcon.astro';
 import { APPLIANCES } from '@/data/appliances';
 import { CITY } from '@/lib/city';
+import { BRAND } from '@/config/site';
 import { minWorkPrice } from '@/lib/pricing';
 import { price, telHref } from '@/lib/format';
 
@@ -10,7 +11,7 @@ const phone = CITY.phoneCity || CITY.phoneMobile;
 ---
 
 <BaseLayout
-  title="Страница не найдена"
+  title={`Страница не найдена — ${BRAND.name} ${CITY.inPrep}`}
   description="Такой страницы на сайте нет. Выберите нужный раздел или позвоните нам."
   noindex
   hasForm={false}

@@ -43,6 +43,17 @@ const id = import.meta.env.PUBLIC_METRIKA_ID;
           ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
             window.addEventListener(ev, load, { once: true, passive: true });
           });
+
+          document.addEventListener(
+            'click',
+            function (event) {
+              var target = event.target.closest && event.target.closest('[data-goal]');
+              if (!target) return;
+              load();
+              window.ym(id, 'reachGoal', target.dataset.goal);
+            },
+            { capture: true, passive: true },
+          );
         })();
       </script>
 
