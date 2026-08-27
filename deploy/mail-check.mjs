@@ -5,6 +5,11 @@ const host = process.env.SMTP_HOST;
 const port = Number(process.env.SMTP_PORT ?? 465);
 const user = process.env.SMTP_USER;
 const pass = process.env.SMTP_PASS;
+const from = process.env.MAIL_FROM || process.env.SMTP_USER;
+const to = (process.env.MAIL_TO ?? '')
+  .split(',')
+  .map((a) => a.trim())
+  .filter(Boolean);
 
 const socket = tls.connect({ host, port, servername: host });
 let buffer = '';
@@ -42,9 +47,23 @@ socket.on('secureConnect', async () => {
   console.log('логин:', await expect());
 
   socket.write(Buffer.from(pass, 'utf8').toString('base64') + '\r\n');
-  console.log('пароль:', await expect());
+  const auth = await expect();
+  console.log('пароль:', auth);
 
-  console.log('длина пароля:', pass.length, 'символов, пробелы:', /\s/.test(pass) ? 'есть' : 'нет');
+  if (/^235 /.test(auth)) {
+    socket.write(`MAIL FROM:<${from}>\r\n`);
+    console.log(`отправитель ${from}:`, await expect());
+
+    for (const address of to) {
+      socket.write(`RCPT TO:<${address}>\r\n`);
+      console.log(`получатель ${address}:`, await expect());
+    }
+
+    socket.write('RSET\r\n');
+    await expect();
+  } else {
+    console.log('длина пароля:', pass.length, 'символов, пробелы:', /\s/.test(pass) ? 'есть' : 'нет');
+  }
 
   socket.write('QUIT\r\n');
   socket.end();
