@@ -163,7 +163,7 @@ if [[ ! -d "$REPO_DIR/.git" ]]; then
   git clone --quiet "$REPO_URL" "$REPO_DIR"
 fi
 chown -R "$DEPLOY_USER:$DEPLOY_USER" /srv/avantfix /var/www/avantfix
-note "$(git -C "$REPO_DIR" log -1 --format='%h %s')"
+note "$(runuser -u "$DEPLOY_USER" -- git -C "$REPO_DIR" log -1 --format='%h %s')"
 
 say "Приём заявок"
 install -m 644 "$HERE/lead-service.mjs" "$HERE/mailer.mjs" /opt/avantfix/
@@ -181,16 +181,18 @@ fi
 
 say "Nginx"
 install -d /etc/nginx/snippets
-install -m 644 "$HERE/nginx/avantfix-common.conf" /etc/nginx/snippets/
 install -m 644 "$HERE/nginx/avantfix-tls.conf" /etc/nginx/snippets/
 rm -f /etc/nginx/sites-enabled/default
 
 siteconf=$(mktemp)
+commonconf=$(mktemp)
 cp "$HERE/nginx/avantfix.conf" "$siteconf"
+cp "$HERE/nginx/avantfix-common.conf" "$commonconf"
 if ! nginx -V 2>&1 | grep -q brotli; then
-  sed -i 's/^brotli/#brotli/' "$siteconf"
+  sed -i 's/^brotli/#brotli/' "$commonconf"
   note "модуля brotli нет — строки отключены"
 fi
+install -m 644 "$commonconf" /etc/nginx/snippets/avantfix-common.conf
 
 if [[ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
   cat > /etc/nginx/sites-available/avantfix <<EOF
@@ -253,10 +255,10 @@ HOOK
     chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
   else
     note "конфиг не проходит проверку:"
-    nginx -t 2>&1 | sed 's/^/    /'
+    { nginx -t 2>&1 || true; } | sed 's/^/    /'
   fi
 fi
-rm -f "$siteconf"
+rm -f "$siteconf" "$commonconf"
 
 if [[ $fresh -eq 1 ]]; then
   say "Файрвол"

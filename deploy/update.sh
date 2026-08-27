@@ -22,7 +22,7 @@ switch_to() {
 if [[ "${1:-}" == "--list" ]]; then
   for city in "${CITIES[@]}"; do
     say "$city"
-    ls -1t "$ROOT/$city/releases" 2>/dev/null | head -"$KEEP" | sed 's/^/    /'
+    { ls -1t "$ROOT/$city/releases" 2>/dev/null || true; } | head -"$KEEP" | sed 's/^/    /'
     note "сейчас: $(current_of "$city")"
   done
   exit 0
