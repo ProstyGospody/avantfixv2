@@ -6,10 +6,9 @@ DOMAIN=avantfix.ru
 HOSTS=(avantfix.ru www.avantfix.ru belgorod.avantfix.ru staryj-oskol.avantfix.ru gubkin.avantfix.ru)
 CITIES=(belgorod oskol gubkin)
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
-REPO_URL="${REPO_URL:-git@github.com:ProstyGospody/avantfixv2.git}"
+REPO_URL="${REPO_URL:-https://github.com/ProstyGospody/avantfixv2.git}"
 REPO_DIR=/srv/avantfix/repo
 MARKER=/etc/avantfix/.installed
-PUBKEY="${1:-}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
@@ -18,6 +17,10 @@ note() { printf '  %s\n' "$*"; }
 if [[ $EUID -ne 0 ]]; then
   echo "Запускать от root" >&2
   exit 1
+fi
+
+if [[ ! -t 0 ]] && [[ -e /dev/tty ]]; then
+  exec < /dev/tty
 fi
 
 install -d /etc/avantfix
@@ -93,33 +96,19 @@ if [[ $fresh -eq 1 ]]; then
   else
     note "уже есть"
   fi
-fi
 
-HOME_DIR=$(getent passwd "$DEPLOY_USER" | cut -d: -f6)
-install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$HOME_DIR/.ssh"
-
-if [[ -n "$PUBKEY" ]]; then
-  touch "$HOME_DIR/.ssh/authorized_keys"
-  if ! grep -qF "$PUBKEY" "$HOME_DIR/.ssh/authorized_keys"; then
-    printf '%s\n' "$PUBKEY" >> "$HOME_DIR/.ssh/authorized_keys"
-  fi
-  chmod 600 "$HOME_DIR/.ssh/authorized_keys"
-fi
-
-if [[ $fresh -eq 1 ]]; then
   say "Каталоги"
   for city in "${CITIES[@]}"; do
     mkdir -p "/var/www/avantfix/$city/releases"
   done
   mkdir -p /var/www/certbot /opt/avantfix /var/log/avantfix /srv/avantfix
-  chown -R "$DEPLOY_USER:$DEPLOY_USER" /var/www/avantfix /srv/avantfix
   chown -R www-data:www-data /var/log/avantfix
   note "/var/www/avantfix, /srv/avantfix, /var/log/avantfix"
 fi
 
 if [[ ! -f /etc/avantfix/lead.env ]]; then
   if [[ ! -t 0 ]]; then
-    echo "Нужен интерактивный запуск: ssh -t" >&2
+    echo "Нужен интерактивный запуск" >&2
     exit 1
   fi
   say "Почта для заявок"
@@ -170,36 +159,11 @@ CFG
 fi
 
 say "Репозиторий"
-if [[ ! -f "$HOME_DIR/.ssh/github" ]]; then
-  sudo -u "$DEPLOY_USER" ssh-keygen -t ed25519 -f "$HOME_DIR/.ssh/github" -N "" -C "avantfix server" >/dev/null
+if [[ ! -d "$REPO_DIR/.git" ]]; then
+  git clone --quiet "$REPO_URL" "$REPO_DIR"
 fi
-if ! grep -q "Host github.com" "$HOME_DIR/.ssh/config" 2>/dev/null; then
-  printf 'Host github.com\n  IdentityFile %s/.ssh/github\n  IdentitiesOnly yes\n' "$HOME_DIR" >> "$HOME_DIR/.ssh/config"
-  chmod 600 "$HOME_DIR/.ssh/config"
-fi
-if ! grep -q "github.com" "$HOME_DIR/.ssh/known_hosts" 2>/dev/null; then
-  ssh-keyscan -t ed25519 github.com 2>/dev/null >> "$HOME_DIR/.ssh/known_hosts"
-fi
-chown -R "$DEPLOY_USER:$DEPLOY_USER" "$HOME_DIR/.ssh"
-
-if [[ -d "$REPO_DIR/.git" ]]; then
-  note "на месте"
-else
-  while ! sudo -u "$DEPLOY_USER" -H git clone --quiet "$REPO_URL" "$REPO_DIR" 2>/dev/null; do
-    echo
-    note "добавьте ключ в github → репозиторий → Settings → Deploy keys,"
-    note "галку Allow write access не ставьте:"
-    echo
-    sed 's/^/    /' "$HOME_DIR/.ssh/github.pub"
-    echo
-    if [[ ! -t 0 ]]; then
-      echo "Нужен интерактивный запуск: ssh -t" >&2
-      exit 1
-    fi
-    read -rp "  добавили — Enter, чтобы продолжить: " _
-  done
-  note "склонирован"
-fi
+chown -R "$DEPLOY_USER:$DEPLOY_USER" /srv/avantfix /var/www/avantfix
+note "$(git -C "$REPO_DIR" log -1 --format='%h %s')"
 
 say "Приём заявок"
 install -m 644 "$HERE/lead-service.mjs" "$HERE/mailer.mjs" /opt/avantfix/
@@ -221,8 +185,10 @@ install -m 644 "$HERE/nginx/avantfix-common.conf" /etc/nginx/snippets/
 install -m 644 "$HERE/nginx/avantfix-tls.conf" /etc/nginx/snippets/
 rm -f /etc/nginx/sites-enabled/default
 
+siteconf=$(mktemp)
+cp "$HERE/nginx/avantfix.conf" "$siteconf"
 if ! nginx -V 2>&1 | grep -q brotli; then
-  sed -i 's/^brotli/#brotli/' "$HERE/nginx/avantfix.conf"
+  sed -i 's/^brotli/#brotli/' "$siteconf"
   note "модуля brotli нет — строки отключены"
 fi
 
@@ -274,7 +240,7 @@ EOF
 fi
 
 if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
-  install -m 644 "$HERE/nginx/avantfix.conf" /etc/nginx/sites-available/avantfix
+  install -m 644 "$siteconf" /etc/nginx/sites-available/avantfix
   ln -sf /etc/nginx/sites-available/avantfix /etc/nginx/sites-enabled/avantfix
   if nginx -t >/dev/null 2>&1; then
     systemctl reload nginx
@@ -290,6 +256,7 @@ HOOK
     nginx -t 2>&1 | sed 's/^/    /'
   fi
 fi
+rm -f "$siteconf"
 
 if [[ $fresh -eq 1 ]]; then
   say "Файрвол"
@@ -309,5 +276,6 @@ say "Готово"
 if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
   note "сайт: https://$DOMAIN"
 else
-  note "сайт на 80 порту без TLS — когда DNS доедет, запустите скрипт ещё раз"
+  note "сайт на 80 порту без TLS — когда DNS доедет, запустите ещё раз"
 fi
+note "обновлять: avantfix-update"
