@@ -18,7 +18,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-if [[ ! -t 0 ]] && [[ -e /dev/tty ]]; then
+if [[ ! -t 0 ]] && (exec < /dev/tty) 2>/dev/null; then
   exec < /dev/tty
 fi
 
