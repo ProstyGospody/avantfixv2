@@ -9,7 +9,7 @@ const PAGE_GZIP_MAX = 60 * 1024;
 
 const HOSTS = {
   belgorod: 'https://avantfix.ru',
-  oskol: 'https://oskol.avantfix.ru',
+  oskol: 'https://staryj-oskol.avantfix.ru',
   gubkin: 'https://gubkin.avantfix.ru',
 };
 

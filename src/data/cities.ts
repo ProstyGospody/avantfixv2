@@ -61,7 +61,7 @@ export const CITIES: Record<CitySlug, City> = {
 
   oskol: {
     slug: 'oskol',
-    subdomain: 'oskol',
+    subdomain: 'staryj-oskol',
     name: 'Старый Оскол',
     inPrep: 'в Старом Осколе',
     genitive: 'Старого Оскола',

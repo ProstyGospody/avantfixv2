@@ -3,7 +3,7 @@
 set -euo pipefail
 
 DOMAIN=avantfix.ru
-HOSTS=(avantfix.ru www.avantfix.ru belgorod.avantfix.ru oskol.avantfix.ru gubkin.avantfix.ru)
+HOSTS=(avantfix.ru www.avantfix.ru belgorod.avantfix.ru staryj-oskol.avantfix.ru gubkin.avantfix.ru)
 CITIES=(belgorod oskol gubkin)
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
 REPO_URL="${REPO_URL:-git@github.com:ProstyGospody/avantfixv2.git}"

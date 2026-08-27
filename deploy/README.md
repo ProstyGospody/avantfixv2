@@ -88,7 +88,7 @@ Settings → Deploy keys → Add deploy key, галку **Allow write access
 | `@` | A | IP сервера |
 | `www` | A | IP сервера |
 | `belgorod` | A | IP сервера |
-| `oskol` | A | IP сервера |
+| `staryj-oskol` | A | IP сервера |
 | `gubkin` | A | IP сервера |
 
 `www` и `belgorod` существуют только ради 301 на главный домен — так
@@ -186,7 +186,7 @@ sudo journalctl -u avantfix-lead -n 20 --no-pager
 ## Чек-лист
 
 - [ ] Яндекс.Вебмастер: добавить и подтвердить 3 хоста (`avantfix.ru`,
-      `oskol.avantfix.ru`, `gubkin.avantfix.ru`) — каждый как отдельный сайт
+      `staryj-oskol.avantfix.ru`, `gubkin.avantfix.ru`) — каждый как отдельный сайт
 - [ ] Присвоить каждому хосту свой регион
 - [ ] Загрузить sitemap на каждом хосте
 - [ ] Завести 3 счётчика Метрики и вписать в `/etc/avantfix/build.env`

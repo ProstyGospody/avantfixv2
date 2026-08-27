@@ -10,7 +10,7 @@ Astro 7, статическая генерация, ноль JS-фреймвор
 | Сборка | Хост | Регион |
 |---|---|---|
 | `belgorod` | `avantfix.ru` | Белгород |
-| `oskol` | `oskol.avantfix.ru` | Старый Оскол |
+| `oskol` | `staryj-oskol.avantfix.ru` | Старый Оскол |
 | `gubkin` | `gubkin.avantfix.ru` | Губкин |
 
 `belgorod.avantfix.ru` зарезервирован и отдаёт 301 на apex.
