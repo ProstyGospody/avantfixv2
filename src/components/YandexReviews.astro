@@ -1,0 +1,77 @@
+---
+import { YANDEX_CARD } from '@/config/site';
+import { CITY } from '@/lib/city';
+
+interface Props {
+  heading?: string;
+}
+
+const { heading } = Astro.props;
+const card = YANDEX_CARD[CITY.slug];
+---
+
+{
+  card && (
+    <figure class="yamap">
+      {heading && <figcaption class="yamap__cap small muted">{heading}</figcaption>}
+
+      <div class="yamap__frame">
+        <iframe
+          src={`https://yandex.ru/maps-reviews-widget/${card.orgId}?comments`}
+          title={`Отзывы об АвантФикс ${CITY.inPrep} на Яндекс Картах`}
+          loading="lazy"
+        />
+      </div>
+
+      <a class="yamap__src small" href={card.url} rel="nofollow noopener" target="_blank">
+        Все отзывы на Яндекс Картах →
+      </a>
+    </figure>
+  )
+}
+
+<style>
+  .yamap {
+    margin: 0;
+    display: grid;
+    gap: var(--sp-3);
+    justify-items: start;
+  }
+
+  .yamap__cap {
+    margin: 0;
+  }
+
+  .yamap__frame {
+    width: 100%;
+    max-width: 560px;
+    height: 800px;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: var(--bg-sunken);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+
+  @media (max-width: 560px) {
+    .yamap__frame {
+      height: 600px;
+    }
+  }
+
+  .yamap__frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .yamap__src {
+    display: inline-block;
+    padding-block: var(--sp-2);
+    color: var(--text-muted);
+  }
+
+  .yamap__src:hover {
+    color: var(--accent-text);
+  }
+</style>

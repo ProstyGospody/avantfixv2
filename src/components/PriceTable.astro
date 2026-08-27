@@ -1,0 +1,108 @@
+---
+import type { Appliance } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { localPriceOf } from '@/lib/pricing';
+import { duration, price, typo } from '@/lib/format';
+import CostBreakdown from '@/components/CostBreakdown.astro';
+
+interface Props {
+  appliance: Appliance;
+  heading?: string;
+  eyebrow?: string;
+
+  limit?: number;
+
+  moreHref?: string;
+  sunken?: boolean;
+}
+
+const { appliance, heading, eyebrow = 'Прайс', limit, moreHref, sunken = false } = Astro.props;
+
+const paid = appliance.priceList.filter((r) => r.priceFrom > 0);
+const rows = limit ? paid.slice(0, limit) : paid;
+const title = heading ?? `Цены на ремонт ${appliance.genitivePlural} ${CITY.inPrep}`;
+---
+
+<section class:list={['section', sunken && 'section--sunken']} aria-labelledby="price-heading">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id="price-heading">{typo(title)}</h2>
+      <p>
+        В таблице — стоимость работы мастера. Из чего складывается итог целиком:
+      </p>
+    </div>
+
+    <CostBreakdown appliance={appliance} />
+
+    <div class="price-card">
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">
+            Прайс-лист на ремонт {appliance.genitivePlural} {CITY.inPrep}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Работа</th>
+              <th scope="col" class="num">Стоимость</th>
+              <th scope="col" class="num">Срок</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rows.map((row) => {
+                const p = localPriceOf(row.priceFrom, CITY);
+                return (
+                  <tr>
+                    <td>{row.work}</td>
+                    <td class="num">от {price(p)}</td>
+                    <td class="num dur">{duration(row.durationMin)}</td>
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {
+      moreHref && (
+        <p class="more">
+          <a href={moreHref} class="link-arrow">
+            Полный прайс на ремонт {appliance.genitivePlural}
+          </a>
+        </p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+
+  .price-card {
+    margin-top: var(--sp-8);
+    padding: var(--sp-6);
+    background: var(--table-bg, var(--bg-sunken));
+    border-radius: var(--r-xl);
+  }
+
+  .section--sunken .price-card {
+    --table-bg: var(--bg-raised);
+  }
+
+  @media (min-width: 620px) {
+    .price-card {
+      padding: var(--sp-7);
+    }
+  }
+
+  .dur {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .more {
+    margin-top: var(--sp-6);
+  }
+</style>

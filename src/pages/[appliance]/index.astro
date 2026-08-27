@@ -1,0 +1,225 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
+import PriceTable from '@/components/PriceTable.astro';
+import LinkGrid from '@/components/LinkGrid.astro';
+import BrandStrip from '@/components/BrandStrip.astro';
+import PriceCalculator from '@/components/PriceCalculator.astro';
+import Benefits from '@/components/Benefits.astro';
+import Steps from '@/components/Steps.astro';
+import Districts from '@/components/Districts.astro';
+import Reviews from '@/components/Reviews.astro';
+import Faq from '@/components/Faq.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import ServiceGrid from '@/components/ServiceGrid.astro';
+
+import { APPLIANCES, brandSlug, faultShort, type Appliance } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { copyFor } from '@/data/copy';
+import { hubFaq } from '@/data/faq';
+import { localPriceOf, minWorkPrice } from '@/lib/pricing';
+import { duration, price } from '@/lib/format';
+import { buildTitle, absoluteUrl } from '@/lib/seo';
+import { breadcrumbs, faq as faqSchema, service } from '@/lib/schema';
+import { WARRANTY } from '@/config/site';
+import { reviewsFor } from '@/data/reviews';
+
+export function getStaticPaths() {
+  return APPLIANCES.map((appliance) => ({
+    params: { appliance: appliance.slug },
+    props: { appliance },
+  }));
+}
+
+interface Props {
+  appliance: Appliance;
+}
+
+const { appliance } = Astro.props;
+const copy = copyFor(CITY.slug, appliance.slug);
+const from = price(minWorkPrice(appliance, CITY));
+const path = `/${appliance.slug}/`;
+
+const h1 = `Ремонт ${appliance.genitivePlural} ${CITY.inPrep}`;
+const title = buildTitle(`${h1} на дому`, `от ${from}, выезд за ${CITY.arrivalMinutes} мин`);
+
+const description =
+  `Ремонт ${appliance.genitivePlural} на дому ${CITY.inPrep}: выезд за ` +
+  `${CITY.arrivalMinutes} минут, диагностика бесплатно, работа от ${from}, ` +
+  `гарантия до ${WARRANTY.workMonths} мес. Чиним ${appliance.brands.slice(0, 3).join(', ')}.`;
+
+const items = hubFaq(appliance, CITY);
+
+const hasReviews = reviewsFor(CITY.slug).length > 0;
+
+const schema = [
+  service(appliance, CITY),
+  breadcrumbs([
+    { name: 'Главная', url: absoluteUrl('/', CITY) },
+    { name: `Ремонт ${appliance.genitivePlural}` },
+  ]),
+  faqSchema(items),
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <Hero
+    h1={h1}
+    applianceSlug={appliance.slug}
+    mediaAlt={`Ремонт ${appliance.genitivePlural} ${CITY.inPrep}`}
+    crumbs={[{ name: `Ремонт ${appliance.genitivePlural}` }]}
+    subject={appliance.short}
+    lead={copy?.intro ?? `Выездной ремонт ${appliance.genitivePlural} ${CITY.inPrep} с гарантией.`}
+    priceFrom={`от ${from}`}
+  />
+
+  <LinkGrid
+    heading="С какими поломками обращаются чаще всего"
+    eyebrow="Неисправности"
+    intro={`Выберите симптом — на странице описаны причины, стоимость и сроки ремонта ${CITY.inPrep}.`}
+    fallback={`Не нашли свой случай? Список закрывает типовые обращения, но не все. Опишите, что происходит с техникой, — назовём вилку цены по телефону.`}
+    items={appliance.faults.map((f) => ({
+      href: `/${appliance.slug}/${f.slug}/`,
+      title: faultShort(f, appliance),
+      price: `от ${price(localPriceOf(f.priceFrom, CITY))}`,
+      note: duration(f.durationMin),
+    }))}
+  />
+
+  <PriceCalculator preselect={appliance.slug} sunken />
+
+  <PriceTable appliance={appliance} limit={8} moreHref={`/${appliance.slug}/ceny/`} />
+
+  <Steps sunken />
+
+  <Benefits />
+
+  {
+    copy && (
+      <section class="section section--sunken">
+        <div class="container">
+
+          <div class="section-head">
+            <p class="eyebrow">Экспертиза</p>
+            <h2>Что важно знать о ремонте {appliance.genitivePlural} {CITY.inPrep}</h2>
+          </div>
+
+          <div class="facts">
+            {copy.body.map((item, i) => (
+              <article class="fact">
+                <p class="fact__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</p>
+                <h3 class="fact__title">{item.title}</h3>
+                <p class="fact__text">{item.text}</p>
+              </article>
+            ))}
+
+            <article class="fact fact--accent">
+              <p class="fact__num" aria-hidden="true">
+                <span class="fact__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" />
+                    <circle cx="12" cy="10" r="2.6" />
+                  </svg>
+                </span>
+              </p>
+              <h3 class="fact__title">Местная особенность</h3>
+              <p class="fact__text">{copy.localNote}</p>
+            </article>
+
+            <article class="fact fact--accent">
+              <p class="fact__num" aria-hidden="true">
+                <span class="fact__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.2" y="6" width="17.6" height="12" rx="2.2" />
+                    <path d="M6.8 10.2h6.4M6.8 13.6h4.2" />
+                  </svg>
+                </span>
+              </p>
+              <h3 class="fact__title">Назовите модель — это ускорит ремонт</h3>
+              <p class="fact__text">{appliance.platePlace}</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <BrandStrip appliance={appliance} />
+
+  <Districts subject={appliance.genitivePlural} sunken />
+
+  <Reviews appliance={appliance.slug} />
+
+  <LeadForm
+    heading={`Вызвать мастера по ремонту ${appliance.genitivePlural}`}
+    subject={appliance.short}
+  />
+
+  <ServiceGrid heading="Ремонтируем и другую технику" exclude={appliance.slug} sunken />
+
+  <Faq items={items} />
+</BaseLayout>
+
+<style>
+
+  .facts {
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  @media (min-width: 860px) {
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .fact {
+    display: grid;
+    align-content: start;
+    padding: var(--sp-6);
+    background: var(--bg-raised);
+    border-radius: var(--r-xl);
+  }
+
+  .fact--accent {
+    background: var(--accent-soft);
+  }
+
+  .fact__num {
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 800;
+    letter-spacing: var(--ls-heading);
+    color: var(--accent-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fact__icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+  }
+
+  .fact__icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .fact__title {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-lg);
+  }
+
+  .fact__text {
+    margin-top: var(--sp-3);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+</style>

@@ -1,0 +1,238 @@
+---
+import type { QA } from '@/lib/schema';
+import { CITY } from '@/lib/city';
+import { telHref, typo } from '@/lib/format';
+
+interface Props {
+  items: QA[];
+  heading?: string;
+  eyebrow?: string;
+  sunken?: boolean;
+}
+
+const { items, heading = 'Частые вопросы', eyebrow = 'Вопросы и ответы', sunken = false } =
+  Astro.props;
+
+const phone = CITY.phoneCity || CITY.phoneMobile;
+---
+
+<section class:list={['section', sunken && 'section--sunken']} aria-labelledby="faq-heading">
+  <div class="container">
+
+    <div class="section-head faq-head">
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id="faq-heading">{typo(heading)}</h2>
+    </div>
+
+    <div class="faq">
+      {
+        items.map((item) => (
+          <details class="faq__item">
+            <summary>
+              <span>{item.q}</span>
+              <span class="faq__sign" aria-hidden="true" />
+            </summary>
+            <div class="faq__answer">
+              <p>{item.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+
+    <div class="ask">
+      <span class="ask__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6.6 3.5h3l1.5 3.7-1.9 1.1a11 11 0 0 0 4.5 4.5l1.1-1.9 3.7 1.5v3a1.6 1.6 0 0 1-1.7 1.6A14.5 14.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.6 3.5Z" />
+        </svg>
+      </span>
+      <div class="ask__body">
+        <p class="ask__title">Не нашли свой вопрос?</p>
+        <p class="ask__text">
+          Позвоните — ответим сразу и назовём вилку цены по вашему случаю.
+
+          {' '}Работаем {CITY.workHours.days}, {CITY.workHours.open}–{CITY.workHours.close}.
+        </p>
+      </div>
+      <a class="btn btn--primary ask__btn" href={telHref(phone)} data-goal="phone-faq">{phone}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+
+  .faq-head {
+    margin-bottom: var(--sp-7);
+  }
+
+  .faq {
+    display: grid;
+    gap: var(--sp-3);
+    align-content: start;
+  }
+
+  @media (min-width: 900px) {
+    .faq {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .faq__item {
+    background: var(--faq-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+    transition: box-shadow 0.16s var(--ease);
+  }
+
+  .section--sunken .faq__item {
+    --faq-bg: var(--bg-raised);
+  }
+
+  .faq__item:hover {
+    box-shadow: var(--shadow-2);
+  }
+
+  .faq__item[open] {
+    box-shadow: var(--shadow-2);
+  }
+
+  .faq__item::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 0.28s var(--ease),
+      content-visibility 0.28s allow-discrete;
+  }
+
+  .faq__item[open]::details-content {
+    block-size: auto;
+  }
+
+  summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-5);
+    padding: var(--sp-5) var(--sp-6);
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: var(--lh-snug);
+    color: var(--text-strong);
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:hover {
+    color: var(--accent-text);
+  }
+
+  .faq__sign {
+    position: relative;
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    margin-top: 5px;
+    color: var(--accent-text);
+  }
+
+  .faq__sign::before,
+  .faq__sign::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto 0;
+    height: 1.8px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.2s var(--ease);
+  }
+
+  .faq__sign::after {
+    transform: rotate(90deg);
+  }
+
+  .faq__item[open] .faq__sign::after {
+    transform: rotate(0deg);
+  }
+
+  .faq__answer {
+    padding: 0 var(--sp-6) var(--sp-5);
+    max-width: 62ch;
+    color: var(--text-muted);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+  }
+
+  .ask {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-4) var(--sp-5);
+    margin-top: var(--sp-4);
+    padding: var(--sp-5) var(--sp-6);
+    background: var(--accent-soft);
+    border-radius: var(--r-lg);
+  }
+
+  .ask__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+  }
+
+  .ask__icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .ask__body {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
+  .ask__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-strong);
+  }
+
+  .ask__text {
+    margin-top: var(--sp-1);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+
+  .ask__btn {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 560px) {
+    summary,
+    .faq__answer {
+      padding-inline: var(--sp-5);
+    }
+
+    .ask {
+      padding: var(--sp-5);
+    }
+
+    .ask__btn {
+      flex: 1 1 100%;
+      justify-content: center;
+    }
+  }
+</style>

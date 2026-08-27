@@ -1,0 +1,407 @@
+---
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import { typo } from '@/lib/format';
+import ApplianceImage from '@/components/ApplianceImage.astro';
+import CutoutPhoto from '@/components/CutoutPhoto.astro';
+import RatingBadge from '@/components/RatingBadge.astro';
+import BrandLogo from '@/components/BrandLogo.astro';
+import { APPLIANCES, brandSlug } from '@/data/appliances';
+import LeadForm from '@/components/LeadForm.astro';
+
+interface Crumb {
+  name: string;
+  href?: string;
+}
+
+interface Fact {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  h1: string;
+  eyebrow?: string;
+  lead?: string;
+  crumbs?: Crumb[];
+  facts?: Fact[];
+
+  plain?: boolean;
+
+  applianceSlug?: string;
+
+  photo?: ImageMetadata;
+
+  brand?: string;
+
+  mediaAlt?: string;
+
+  photoStands?: boolean;
+
+  hideRating?: boolean;
+
+  form?: boolean;
+
+  formSubject?: string;
+}
+
+const {
+  h1,
+  eyebrow,
+  lead,
+  crumbs = [],
+  facts = [],
+  plain = false,
+  applianceSlug,
+  photo,
+  brand,
+  mediaAlt = '',
+  photoStands = false,
+  hideRating = false,
+  form = false,
+  formSubject = '',
+} = Astro.props;
+
+const hangs = APPLIANCES.find((a) => a.slug === applianceSlug)?.mounted === 'wall';
+const hasActions = Astro.slots.has('actions');
+
+const pattern = brand ? `url(/brands/pattern/${brandSlug(brand)}.svg)` : null;
+---
+
+{crumbs.length > 0 && <Breadcrumbs items={crumbs} />}
+
+<section class:list={['ph', plain && 'ph--plain']}>
+
+  <div class="container">
+    <div class="ph__banner" style={pattern ? `--ph-pattern: ${pattern}` : undefined}>
+
+      <div class="ph__main">
+        <div class="ph__head">
+          {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+          <h1>{typo(h1)}</h1>
+          {lead && <p class="ph__lead">{typo(lead)}</p>}
+        </div>
+
+        {(form || hasActions) && (
+          <div class="ph__cta">
+            {form && <LeadForm variant="inline" id="zayavka-hero" subject={formSubject} />}
+
+            {hasActions && (
+              <div class="ph__actions">
+                <slot name="actions" />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {(applianceSlug || photo) && (
+        <div
+          class:list={[
+            'ph__art',
+            hangs && 'ph__art--hangs',
+            photoStands && 'ph__art--stands',
+          ]}
+        >
+          {applianceSlug ? (
+            <ApplianceImage
+              slug={applianceSlug}
+              alt={mediaAlt}
+              eager
+              widths={[420, 640, 900]}
+              sizes="(max-width: 899px) min(72vw, 340px), 42vw"
+            />
+          ) : (
+            <CutoutPhoto
+              src={photo!}
+              alt={mediaAlt}
+              eager
+              quality={74}
+              widths={[420, 640, 900]}
+              sizes="(max-width: 899px) min(72vw, 340px), 42vw"
+            />
+          )}
+
+        </div>
+      )}
+    </div>
+  </div>
+
+  <div class="container">
+
+    {facts.length > 0 && (
+      <div class="ph__strip">
+        <dl class="ph__facts">
+            {facts.map((f) => (
+              <div class="ph__fact">
+                <dt class="ph__value">{f.value}</dt>
+                <dd class="ph__label">{f.label}</dd>
+              </div>
+            ))}
+        </dl>
+
+        {!hideRating && <RatingBadge />}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+
+  .ph {
+    background:
+      radial-gradient(55rem 26rem at 12% -20%, var(--accent-soft), transparent 62%),
+      var(--bg);
+  }
+
+  .ph--plain {
+    background: var(--bg);
+  }
+
+  .ph {
+    padding-top: var(--sp-5);
+  }
+
+  .ph:not(:has(.ph__strip)) {
+    padding-bottom: var(--sp-5);
+  }
+
+  .ph__banner {
+    position: relative;
+    overflow: hidden;
+
+    padding: var(--sp-5);
+    background: var(--banner-bg, var(--bg-sunken));
+    border-radius: var(--r-xl);
+  }
+
+  .ph__banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--ph-pattern, none);
+    background-repeat: repeat;
+
+    background-size: 232px 148px;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+
+  @media (min-width: 620px) {
+    .ph__banner::before {
+      background-size: 330px 210px;
+    }
+  }
+
+  .ph__main {
+    position: relative;
+  }
+
+  .ph__art {
+    display: grid;
+    justify-items: center;
+    margin-top: var(--sp-6);
+  }
+
+  .ph__art :global(.cutout-img) {
+    max-height: 260px;
+    object-fit: contain;
+  }
+
+  @media (max-width: 899px) {
+    .ph__banner {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-5);
+    }
+
+    .ph__art:not(.ph__art--stands) {
+      order: 1;
+      margin: 0;
+    }
+
+    .ph__cta {
+      order: 2;
+    }
+
+    .ph__art:not(.ph__art--stands) :global(.cutout-img) {
+      max-height: 220px;
+    }
+
+    .ph__art--stands {
+      order: 3;
+      margin-top: 0;
+    }
+  }
+
+  .ph__art--stands {
+    margin-bottom: calc(var(--sp-5) * -1);
+  }
+
+  .ph__art--stands :global(.cutout-img) {
+    max-height: 300px;
+    object-position: bottom;
+  }
+
+  @media (min-width: 900px) {
+    .ph__art {
+      position: absolute;
+      right: var(--sp-8);
+      bottom: 0;
+      margin: 0;
+      width: min(38%, 400px);
+      height: 100%;
+
+      align-content: center;
+
+      padding-block: var(--sp-6);
+      pointer-events: none;
+    }
+
+    .ph__art--hangs {
+      align-content: start;
+      padding-top: var(--sp-6);
+    }
+
+    .ph__art--stands {
+      width: min(42%, 440px);
+      padding-block: 0;
+    }
+
+    .ph__art :global(.cutout-pic),
+    .ph__art :global(.cutout-img) {
+      max-width: 100%;
+      max-height: 100%;
+      min-height: 0;
+    }
+
+    .ph__art--stands :global(.cutout-img) {
+      object-position: bottom;
+    }
+  }
+
+  .ph__main {
+    display: grid;
+    justify-items: start;
+    align-content: start;
+    gap: var(--sp-4);
+    min-width: 0;
+  }
+
+  .ph__head,
+  .ph__cta {
+    display: grid;
+    justify-items: start;
+    gap: var(--sp-4);
+    width: 100%;
+    min-width: 0;
+  }
+
+  @media (min-width: 900px) {
+    .ph__head,
+    .ph__cta {
+      gap: var(--sp-3);
+    }
+  }
+
+  @media (max-width: 899px) {
+    .ph__main {
+      display: contents;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .ph__banner:has(.ph__art) .ph__main {
+      max-width: min(54%, 40rem);
+    }
+
+    .ph__banner:not(:has(.ph__art)) .ph__main {
+      max-width: min(78%, 52rem);
+    }
+  }
+
+  .ph__main :global(.form-inline) {
+    width: 100%;
+  }
+
+  .ph__lead {
+    margin-top: var(--sp-4);
+    max-width: 60ch;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-snug);
+    letter-spacing: -0.01em;
+    color: var(--text-muted);
+  }
+
+  .ph__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-top: var(--sp-5);
+  }
+
+  .ph__strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-4) var(--sp-7);
+    margin-top: var(--sp-6);
+    padding-block: var(--sp-5);
+
+    border-block: 1px solid var(--line);
+  }
+
+  .ph__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3) var(--sp-5);
+    margin: 0;
+  }
+
+  @media (min-width: 620px) {
+    .ph__facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-3) var(--sp-6);
+    }
+  }
+
+  .ph__fact {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 619px) {
+    .ph__fact {
+      display: grid;
+      justify-items: start;
+      gap: var(--sp-1);
+      white-space: normal;
+    }
+  }
+
+  .ph__value {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 800;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ph__label {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 620px) {
+    @media (min-width: 960px) {
+  @media (max-width: 560px) {
+    .ph__actions :global(.btn) {
+      flex: 1 1 100%;
+    }
+  }
+</style>

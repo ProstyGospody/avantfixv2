@@ -1,0 +1,44 @@
+---
+import CutoutPhoto from '@/components/CutoutPhoto.astro';
+
+interface Props {
+  slug: string;
+  alt: string;
+
+  widths?: number[];
+  sizes?: string;
+
+  eager?: boolean;
+  class?: string;
+}
+
+const {
+  slug,
+  alt,
+  widths = [180, 320, 480],
+  sizes = '(max-width: 560px) 40vw, 200px',
+  eager = false,
+  class: className,
+} = Astro.props;
+
+const files = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/images/appliances/*.{png,jpg,jpeg,webp}',
+  { eager: true },
+);
+
+const hit = Object.entries(files).find(([p]) => p.includes(`/appliances/${slug}.`));
+const src = hit?.[1].default ?? null;
+---
+
+{
+  src && (
+    <CutoutPhoto
+      src={src}
+      alt={alt}
+      widths={widths}
+      sizes={sizes}
+      eager={eager}
+      class={className}
+    />
+  )
+}

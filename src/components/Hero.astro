@@ -1,0 +1,61 @@
+---
+import PageHero from '@/components/PageHero.astro';
+import heroPhoto from '@/images/hero-master.png';
+import { CITY } from '@/lib/city';
+import { WARRANTY } from '@/config/site';
+
+interface Props {
+  h1: string;
+  lead: string;
+
+  priceFrom?: string;
+
+  subject?: string;
+
+  crumbs?: { name: string; href?: string }[];
+
+  eyebrow?: string;
+
+  applianceSlug?: string;
+
+  mediaAlt?: string;
+
+  photo?: boolean;
+}
+
+const {
+  h1,
+  lead,
+  priceFrom,
+  subject = '',
+  crumbs = [],
+  eyebrow,
+  applianceSlug,
+  mediaAlt = '',
+  photo = false,
+} = Astro.props;
+
+const facts = [
+  ...(priceFrom ? [{ value: priceFrom, label: 'работа мастера' }] : []),
+  { value: `${CITY.arrivalMinutes} мин`, label: 'выезд' },
+  { value: '0 ₽', label: 'диагностика' },
+  { value: `${WARRANTY.workMonths} мес.`, label: 'гарантия' },
+];
+---
+
+<PageHero
+  h1={h1}
+  eyebrow={eyebrow}
+  lead={lead}
+  crumbs={crumbs}
+  facts={facts}
+  applianceSlug={applianceSlug}
+  photo={photo ? heroPhoto : undefined}
+  mediaAlt={
+    photo
+      ? 'Пассатижи и крестовая отвёртка — инструмент выездного мастера'
+      : mediaAlt
+  }
+  form
+  formSubject={subject}
+/>

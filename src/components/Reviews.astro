@@ -1,0 +1,123 @@
+---
+import { CITY } from '@/lib/city';
+import { typo } from '@/lib/format';
+import { reviewsFor } from '@/data/reviews';
+import { APPLIANCE_BY_SLUG } from '@/data/appliances';
+
+interface Props {
+  appliance?: string;
+  limit?: number;
+  heading?: string;
+  sunken?: boolean;
+}
+
+const { appliance, limit = 6, heading, sunken = false } = Astro.props;
+
+const specific = reviewsFor(CITY.slug, appliance);
+const items = (specific.length ? specific : reviewsFor(CITY.slug)).slice(0, limit);
+
+const title = heading ?? `Отзывы клиентов ${CITY.inPrep}`;
+const fmt = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+{
+  items.length > 0 && (
+    <section class:list={['section', sunken && 'section--sunken']} aria-labelledby="reviews-heading">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Отзывы</p>
+          <h2 id="reviews-heading">{typo(title)}</h2>
+        </div>
+
+        <ul class="rev reveal">
+          {items.map((r) => (
+            <li class="rev__item">
+              <p class="rev__stars" aria-label={`Оценка ${r.rating} из 5`}>
+                <span aria-hidden="true">{'★'.repeat(r.rating)}</span>
+                <span class="rev__stars-off" aria-hidden="true">{'★'.repeat(5 - r.rating)}</span>
+              </p>
+              <p class="rev__text">{r.text}</p>
+              <p class="rev__meta small">
+                <b>{r.author}</b>
+                <span class="muted">
+                  <time datetime={r.date}>{fmt.format(new Date(r.date))}</time>
+                  {' · '}
+                  {APPLIANCE_BY_SLUG.get(r.appliance)?.short ?? r.appliance}
+                </span>
+              </p>
+              {r.reply && (
+                <p class="rev__reply small">
+                  <b>Ответ сервиса:</b> {r.reply}
+                </p>
+              )}
+              {r.source && (
+                <p class="small">
+                  <a href={r.source} rel="nofollow noopener" target="_blank">
+                    Отзыв на Яндекс Картах
+                  </a>
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .rev {
+    display: grid;
+    gap: var(--sp-5);
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  }
+
+  .rev__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-6);
+    background: var(--card-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+  }
+
+  .section--sunken .rev__item {
+    --card-bg: var(--bg-raised);
+  }
+
+  .rev__stars {
+    color: var(--warn-600);
+    letter-spacing: 0.08em;
+    font-size: var(--fs-sm);
+  }
+
+  .rev__stars-off {
+    color: var(--line-strong);
+  }
+
+  .rev__text {
+    font-size: var(--fs-base);
+    color: var(--text);
+  }
+
+  .rev__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1) var(--sp-3);
+    margin-top: auto;
+    padding-top: var(--sp-2);
+  }
+
+  .rev__reply {
+    padding: var(--sp-4);
+    background: var(--reply-bg, var(--bg-raised));
+    border-radius: var(--r);
+    color: var(--text-muted);
+  }
+
+  .section--sunken .rev__reply {
+    --reply-bg: var(--bg-sunken);
+  }
+</style>

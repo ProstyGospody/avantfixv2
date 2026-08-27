@@ -1,0 +1,79 @@
+---
+import { brandSlug } from '@/data/appliances';
+import { logoBox } from '@/lib/brandLogos';
+
+interface Props {
+  brand: string;
+
+  scale?: number;
+
+  eager?: boolean;
+
+  vivid?: boolean;
+}
+
+const { brand, scale = 1, eager = false, vivid = false } = Astro.props;
+const slug = brandSlug(brand);
+const box = logoBox(slug, scale);
+
+const shift = Math.abs(box.dx) >= 0.5 || Math.abs(box.dy) >= 0.5;
+---
+
+{
+  box.usable ? (
+    <img
+      src={`/brands/tinted/${slug}.svg`}
+      alt={brand}
+      width={box.width}
+      height={box.height}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : 'auto'}
+      decoding={eager ? 'sync' : 'async'}
+      class:list={['brand-logo', vivid && 'brand-logo--vivid']}
+      style={shift ? `translate: ${box.dx}px ${box.dy}px` : undefined}
+    />
+  ) : (
+    <span
+      class:list={['brand-wordmark', vivid && 'brand-wordmark--vivid']}
+      style={`font-size:${Math.round(17 * scale)}px`}
+    >
+      {brand}
+    </span>
+  )
+}
+
+<style>
+
+  .brand-logo {
+    display: block;
+    object-fit: contain;
+    opacity: 0.6;
+    transition: opacity 0.2s var(--ease);
+  }
+
+  :where(a:hover, li:hover) > .brand-logo {
+    opacity: 1;
+  }
+
+  .brand-logo--vivid {
+    opacity: 1;
+  }
+
+  .brand-wordmark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-faint);
+    opacity: 0.6;
+    white-space: nowrap;
+    transition: opacity 0.2s var(--ease);
+  }
+
+  :where(a:hover, li:hover) > .brand-wordmark {
+    opacity: 1;
+  }
+
+  .brand-wordmark--vivid {
+    opacity: 1;
+  }
+</style>

@@ -1,0 +1,114 @@
+---
+import '@/styles/global.css';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import StickyActions from '@/components/StickyActions.astro';
+import Metrika from '@/components/Metrika.astro';
+import { CITY } from '@/lib/city';
+import { BRAND } from '@/config/site';
+import { absoluteUrl, auditMeta } from '@/lib/seo';
+import { graph, localBusiness, webSite } from '@/lib/schema';
+
+interface Props {
+  title: string;
+  description: string;
+
+  schema?: Record<string, unknown>[];
+  noindex?: boolean;
+
+  ogImage?: string;
+
+  hasForm?: boolean;
+}
+
+const {
+  title,
+  description,
+  schema = [],
+  noindex = false,
+  ogImage = '/og-default.jpg',
+  hasForm = true,
+} = Astro.props;
+
+const path = Astro.url.pathname;
+const canonical = absoluteUrl(path, CITY);
+auditMeta(title, description, path);
+
+const formHref = hasForm ? '#zayavka' : '/#zayavka';
+
+const jsonLd = graph([localBusiness(CITY), webSite(CITY), ...schema]);
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    {!noindex && <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={`${BRAND.name} ${CITY.inPrep}`} />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {
+      ogImage && (
+        <>
+
+          <meta property="og:image" content={absoluteUrl(ogImage, CITY)} />
+          <meta property="og:image:type" content="image/jpeg" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta
+            property="og:image:alt"
+            content={`${BRAND.name} — выездной ремонт крупной бытовой техники ${CITY.inPrep}`}
+          />
+          <meta name="twitter:card" content="summary_large_image" />
+        </>
+      )
+    }
+
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="only light" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link
+      rel="preload"
+      href="/fonts/inter-cyrillic-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/manrope-cyrillic-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <script type="application/ld+json" set:html={jsonLd} is:inline />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Перейти к содержимому</a>
+    <Header formHref={formHref} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <StickyActions formHref={formHref} />
+    <Metrika />
+  </body>
+</html>

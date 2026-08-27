@@ -1,0 +1,149 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
+import ServiceGrid from '@/components/ServiceGrid.astro';
+import BrandStrip from '@/components/BrandStrip.astro';
+import PriceCalculator from '@/components/PriceCalculator.astro';
+import Benefits from '@/components/Benefits.astro';
+import Steps from '@/components/Steps.astro';
+import AboutService from '@/components/AboutService.astro';
+import Districts from '@/components/Districts.astro';
+import Reviews from '@/components/Reviews.astro';
+import Faq from '@/components/Faq.astro';
+import LeadForm from '@/components/LeadForm.astro';
+
+import { APPLIANCES } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { HOME_COPY } from '@/data/copy';
+import { minWorkPrice } from '@/lib/pricing';
+import { price } from '@/lib/format';
+import { buildTitle } from '@/lib/seo';
+import { faq as faqSchema } from '@/lib/schema';
+import { WARRANTY } from '@/config/site';
+import { reviewsFor } from '@/data/reviews';
+
+const hasReviews = reviewsFor(CITY.slug).length > 0;
+
+const faultCount = APPLIANCES.reduce((n, a) => n + a.faults.length, 0);
+const brandCount = new Set(APPLIANCES.flatMap((a) => a.brands)).size;
+const workCount = APPLIANCES.reduce((n, a) => n + a.priceList.length, 0);
+
+const copy = HOME_COPY[CITY.slug];
+
+const from = price(Math.min(...APPLIANCES.map((a) => minWorkPrice(a, CITY))));
+
+const h1 = `Ремонт бытовой техники ${CITY.inPrep} на дому`;
+const title = buildTitle(h1, `выезд за ${CITY.arrivalMinutes} мин, от ${from}`);
+const description =
+  `Ремонт стиральных и посудомоечных машин, холодильников, духовых шкафов и вытяжек ` +
+  `на дому ${CITY.inPrep}. Выезд за ${CITY.arrivalMinutes} мин, диагностика бесплатно, ` +
+  `гарантия до ${WARRANTY.workMonths} мес.`;
+
+const faqItems = [
+  {
+    q: `Какую технику вы ремонтируете ${CITY.inPrep}?`,
+    a: `Крупную бытовую: ${APPLIANCES.map((a) => a.short.toLowerCase()).join(', ')}. Работаем со всеми популярными марками, включая встраиваемую технику.`,
+  },
+  {
+    q: 'Сколько стоит вызов мастера?',
+    a: `Выезд по ${CITY.dative} бесплатный. Диагностика тоже бесплатна, если вы соглашаетесь на ремонт. Если решаете не ремонтировать — платить не нужно, счёт мы не выставим.`,
+  },
+  {
+    q: 'Как быстро приедет мастер?',
+    a: `В среднем за ${CITY.arrivalMinutes} минут с момента заявки. Работаем ${CITY.workHours.days} с ${CITY.workHours.open} до ${CITY.workHours.close} и в большинстве случаев приезжаем в день обращения.`,
+  },
+  {
+    q: 'Ремонт делают на дому?',
+    a: 'Да, подавляющее большинство работ выполняем у вас дома. В мастерскую забираем только сложные случаи вроде компонентного ремонта платы — и всегда с вашего согласия.',
+  },
+  {
+    q: 'Какая гарантия?',
+    a: `${WARRANTY.text} — подтверждаем гарантийным талоном. При повторной поломке по нашей вине приедем и устраним бесплатно.`,
+  },
+  {
+    q: 'Работаете с юридическими лицами?',
+    a: 'Да, обслуживаем технику кафе, гостиниц, прачечных и офисов. Работаем по договору с закрывающими документами, возможен безналичный расчёт.',
+  },
+];
+---
+
+<BaseLayout title={title} description={description} schema={[faqSchema(faqItems)]}>
+  <Hero
+    h1={h1}
+    eyebrow={`Ремонт на дому · ${CITY.name}`}
+    lead={copy.intro}
+    priceFrom={`от ${from}`}
+    photo
+  />
+
+  <ServiceGrid />
+
+  <BrandStrip linked={false} sunken limit={18} />
+
+  <PriceCalculator />
+
+  <Steps sunken />
+
+  <Benefits />
+
+  <AboutService sunken />
+
+  <Districts />
+
+  <Reviews sunken />
+
+  <LeadForm />
+
+  <Faq items={faqItems} />
+</BaseLayout>
+
+<style>
+
+  .about {
+    display: grid;
+    gap: var(--sp-6);
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .about {
+      grid-template-columns: minmax(240px, 1fr) minmax(0, 1.6fr);
+      gap: var(--sp-9);
+    }
+
+    .about__head {
+      position: sticky;
+      top: calc(var(--header-h) + var(--sp-5));
+      margin-bottom: 0;
+    }
+  }
+
+  .about__head :global(.section-head) {
+    margin-bottom: var(--sp-6);
+  }
+
+  .scope {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-5) var(--sp-4);
+    margin: 0;
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line);
+  }
+
+  .scope__value {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 800;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .scope__label {
+    margin: var(--sp-1) 0 0;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+</style>

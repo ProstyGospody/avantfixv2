@@ -1,0 +1,38 @@
+{
+  "name": "avantfix",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "dev:oskol": "cross-env SITE_CITY=oskol astro dev --host 127.0.0.1",
+    "dev:gubkin": "cross-env SITE_CITY=gubkin astro dev --host 127.0.0.1",
+    "build": "npm run build:belgorod && npm run build:oskol && npm run build:gubkin",
+    "build:belgorod": "cross-env SITE_CITY=belgorod astro build",
+    "build:oskol": "cross-env SITE_CITY=oskol astro build",
+    "build:gubkin": "cross-env SITE_CITY=gubkin astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "dev:lan": "astro dev --host 0.0.0.0",
+    "check": "astro check",
+    "audit": "node scripts/audit.mjs",
+    "rhythm": "node scripts/section-rhythm.mjs",
+    "verify": "npm run audit && npm run rhythm && npm run anchors && npm run links && node scripts/orphan-classes.mjs",
+    "anchors": "node scripts/anchors.mjs",
+    "links": "node scripts/links.mjs",
+    "gaps": "node scripts/hero-gaps.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "astro": "^7.2.4",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "typescript": "^5.7.3"
+  }
+}

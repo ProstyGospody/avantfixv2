@@ -1,0 +1,24 @@
+[Unit]
+Description=AvantFix — приём заявок с форм сайта
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/avantfix
+ExecStart=/usr/bin/node /opt/avantfix/lead-service.mjs
+Restart=always
+RestartSec=5
+
+Environment=PORT=8787
+Environment=LEADS_FILE=/var/log/avantfix/leads.jsonl
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/avantfix
+
+[Install]
+WantedBy=multi-user.target

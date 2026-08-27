@@ -1,0 +1,9 @@
+{
+  "name": "АвантФикс — ремонт бытовой техники",
+  "short_name": "АвантФикс",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#2560f0",
+  "lang": "ru-RU"
+}

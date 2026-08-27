@@ -1,0 +1,636 @@
+---
+import Logo from '@/components/Logo.astro';
+import ApplianceIcon from '@/components/ApplianceIcon.astro';
+import { APPLIANCES } from '@/data/appliances';
+import { CITY, OTHER_CITIES, crossCityUrl } from '@/lib/city';
+import { BRAND } from '@/config/site';
+import { minWorkPrice } from '@/lib/pricing';
+import { price, telHref } from '@/lib/format';
+
+interface Props {
+  formHref?: string;
+}
+
+const { formHref = '#zayavka' } = Astro.props;
+const phone = CITY.phoneCity || CITY.phoneMobile;
+const current = Astro.url.pathname;
+const isActive = (href: string) => current === href || current.startsWith(href);
+const inServices = APPLIANCES.some((a) => isActive(`/${a.slug}/`));
+
+const services = APPLIANCES.map((a) => ({
+  slug: a.slug,
+  href: `/${a.slug}/`,
+  title: a.short,
+  from: price(minWorkPrice(a, CITY)),
+  active: isActive(`/${a.slug}/`),
+}));
+---
+
+<header class="hdr">
+  <div class="container hdr__bar">
+    <Logo size={28} />
+
+    <div class="disclosure" data-disclosure>
+      <button type="button" class="city__btn" aria-expanded="false">
+        <span class="city__dot" aria-hidden="true"></span>
+        {CITY.name}
+        <span class="chev" aria-hidden="true"></span>
+      </button>
+      <div class="disclosure__panel">
+        <p class="disclosure__label">Города обслуживания</p>
+
+        <a href="/" aria-current="page" class="city__item city__item--current">
+          <span class="city__check" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.5 10.5 8.5 14.5 15.5 6" />
+            </svg>
+          </span>
+          <span class="city__name">{CITY.name}</span>
+          <span class="city__time">{CITY.arrivalMinutes} мин</span>
+        </a>
+        {OTHER_CITIES.map((c) => (
+          <a href={crossCityUrl(c.slug)} class="city__item">
+            <span class="city__check" aria-hidden="true" />
+            <span class="city__name">{c.name}</span>
+            <span class="city__time">{c.arrivalMinutes} мин</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Основное меню">
+      <div class="disclosure" data-disclosure>
+        <button type="button" class="nav__link" aria-expanded="false" data-active={inServices}>
+          Услуги
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="disclosure__panel svc-panel">
+          {services.map((s) => (
+            <a href={s.href} class="svc-panel__item" aria-current={s.active ? 'page' : undefined}>
+              <span class="svc-panel__icon" aria-hidden="true">
+                <ApplianceIcon slug={s.slug} size={18} />
+              </span>
+              <span class="svc-panel__title">{s.title}</span>
+              <span class="svc-panel__price">от {s.from}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <a href="/garantiya/" class="nav__link" aria-current={isActive('/garantiya/') ? 'page' : undefined}>Гарантия</a>
+      <a href="/otzyvy/" class="nav__link" aria-current={isActive('/otzyvy/') ? 'page' : undefined}>Отзывы</a>
+      <a href="/kontakty/" class="nav__link" aria-current={isActive('/kontakty/') ? 'page' : undefined}>Контакты</a>
+    </nav>
+
+    <div class="hdr__actions">
+      <a class="hdr__phone" href={telHref(phone)} data-goal="phone-header">{phone}</a>
+      <a class="btn btn--primary hdr__cta" href={formHref}>Вызвать мастера</a>
+    </div>
+
+    <button class="burger" type="button" aria-expanded="false" aria-controls="mobile-menu">
+      <span class="burger__bars" aria-hidden="true"></span>
+      <span class="visually-hidden">Меню</span>
+    </button>
+  </div>
+
+</header>
+
+<div class="mobile" id="mobile-menu" hidden>
+    <div class="container mobile__inner">
+      <p class="disclosure__label">Услуги</p>
+      {services.map((s) => (
+        <a href={s.href} class="mobile__svc" aria-current={s.active ? 'page' : undefined}>
+          <span class="mobile__icon" aria-hidden="true">
+            <ApplianceIcon slug={s.slug} size={20} />
+          </span>
+          <span>{s.title}</span>
+          <span class="mobile__price">от {s.from}</span>
+        </a>
+      ))}
+
+      <p class="disclosure__label">О сервисе</p>
+      <a href="/garantiya/" class="mobile__link">Гарантия</a>
+      <a href="/otzyvy/" class="mobile__link">Отзывы</a>
+      <a href="/o-kompanii/" class="mobile__link">О компании</a>
+      <a href="/kontakty/" class="mobile__link">Контакты</a>
+
+      <p class="disclosure__label">Другой город</p>
+      <div class="mobile__cities">
+        {OTHER_CITIES.map((c) => (
+          <a href={crossCityUrl(c.slug)} class="mobile__city">{c.name}</a>
+        ))}
+      </div>
+
+      <a class="btn btn--primary btn--block mobile__cta" href={telHref(phone)}>{phone}</a>
+      <p class="mobile__hours small muted">
+        {CITY.workHours.days}, {CITY.workHours.open}–{CITY.workHours.close}
+      </p>
+    </div>
+  </div>
+
+<style>
+  .hdr {
+    view-transition-name: site-header;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hdr__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    height: 72px;
+  }
+
+  .disclosure {
+    position: relative;
+  }
+
+  .disclosure__panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 10;
+    display: none;
+    min-width: 240px;
+    padding: var(--sp-3);
+    background: var(--bg-raised);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-3);
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top left;
+    transition:
+      opacity 0.16s var(--ease),
+      transform 0.16s var(--ease-out),
+      display 0.16s allow-discrete;
+  }
+
+  .disclosure[data-open] .disclosure__panel {
+    display: block;
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 600px) {
+    .disclosure__panel {
+      left: auto;
+      right: 0;
+      transform-origin: top right;
+      max-width: calc(100vw - var(--sp-6));
+    }
+  }
+
+  @starting-style {
+    .disclosure[data-open] .disclosure__panel {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
+
+  .disclosure__label {
+    padding: var(--sp-2) var(--sp-3);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .chev {
+    width: 7px;
+    height: 7px;
+    border-right: 1.6px solid currentColor;
+    border-bottom: 1.6px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    opacity: 0.5;
+    transition: transform 0.18s var(--ease);
+  }
+
+  .disclosure[data-open] .chev {
+    transform: rotate(-135deg) translate(-2px, -2px);
+  }
+
+  .city__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    height: 36px;
+    padding-inline: var(--sp-3);
+    background: color-mix(in srgb, var(--text-strong) 5%, transparent);
+    border: none;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .city__btn:hover {
+    background: color-mix(in srgb, var(--text-strong) 9%, transparent);
+  }
+
+  .city__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pos-600);
+  }
+
+  .city__item {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-size: var(--fs-base);
+    text-decoration: none;
+  }
+
+  .city__check {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: var(--accent-text);
+  }
+
+  .city__check svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .city__name {
+    white-space: nowrap;
+  }
+
+  .city__time {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .city__item:hover {
+    background: var(--bg-sunken);
+    color: var(--text-strong);
+    text-decoration: none;
+  }
+
+  .city__item--current {
+    color: var(--text-strong);
+    font-weight: 600;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-left: auto;
+  }
+
+  .nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    height: 38px;
+    padding-inline: var(--sp-3);
+    border: none;
+    background: none;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .nav__link:hover {
+    background: var(--bg-sunken);
+    color: var(--text-strong);
+    text-decoration: none;
+  }
+
+  .nav__link[aria-current='page'],
+  .nav__link[data-active='true'] {
+    color: var(--text-strong);
+    font-weight: 600;
+  }
+
+  .svc-panel {
+    min-width: 366px;
+  }
+
+  .svc-panel__item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .svc-panel__icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--bg-sunken);
+    color: var(--accent-text);
+  }
+
+  .svc-panel__item:hover .svc-panel__icon,
+  .svc-panel__item[aria-current='page'] .svc-panel__icon {
+    background: var(--accent-soft);
+  }
+
+  .svc-panel__item:hover {
+    background: var(--bg-sunken);
+    text-decoration: none;
+  }
+
+  .svc-panel__item:hover .svc-panel__icon {
+    background: var(--bg-raised);
+  }
+
+  .svc-panel__title {
+    font-size: var(--fs-base);
+    white-space: nowrap;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+
+  .svc-panel__price {
+    flex: none;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hdr__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+
+  .hdr__phone {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text-strong);
+    text-decoration: none;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hdr__phone:hover {
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+
+  .hdr__cta {
+    min-height: 42px;
+    padding-inline: var(--sp-5);
+    font-size: var(--fs-base);
+  }
+
+  .burger {
+    display: none;
+
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin-left: auto;
+    background: none;
+    border: none;
+    place-items: center;
+  }
+
+  .burger__bars,
+  .burger__bars::before,
+  .burger__bars::after {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text-strong);
+    border-radius: 2px;
+    transition: transform 0.2s var(--ease), opacity 0.15s var(--ease);
+  }
+
+  .burger__bars::before,
+  .burger__bars::after {
+    content: '';
+    position: relative;
+  }
+
+  .burger__bars::before {
+    top: -6px;
+  }
+
+  .burger__bars::after {
+    top: 4px;
+  }
+
+  .burger[aria-expanded='true'] .burger__bars {
+    background: transparent;
+  }
+
+  .burger[aria-expanded='true'] .burger__bars::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .burger[aria-expanded='true'] .burger__bars::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .mobile {
+    position: fixed;
+    inset: 72px 0 0;
+    z-index: 49;
+    overflow-y: auto;
+    background: var(--bg);
+    padding-bottom: var(--sp-8);
+  }
+
+  .mobile__inner {
+    padding-top: var(--sp-4);
+  }
+
+  .mobile__svc,
+  .mobile__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding-block: var(--sp-4);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--text-strong);
+    text-decoration: none;
+  }
+
+  .mobile__svc > span:not([class]) {
+    flex: 1 1 auto;
+  }
+
+  .mobile__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--bg-sunken);
+    color: var(--accent-text);
+  }
+
+  .mobile__svc[aria-current='page'] .mobile__icon {
+    background: var(--accent-soft);
+  }
+
+  .mobile__svc + .mobile__svc,
+  .mobile__link + .mobile__link {
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile__svc[aria-current='page'],
+  .mobile__link[aria-current='page'] {
+    color: var(--accent-text);
+  }
+
+  .mobile__price {
+    flex: none;
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile__cities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    padding: var(--sp-2) 0 var(--sp-5);
+  }
+
+  .mobile__city {
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--bg-sunken);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-base);
+    color: var(--text-strong);
+    text-decoration: none;
+  }
+
+  .mobile__cta {
+    margin-top: var(--sp-3);
+  }
+
+  .mobile__hours {
+    margin-top: var(--sp-3);
+    text-align: center;
+  }
+
+  @media (max-width: 1080px) {
+    .hdr__phone {
+      display: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .hdr__bar {
+      height: 64px;
+      gap: var(--sp-3);
+    }
+
+    .nav,
+    .hdr__actions {
+      display: none;
+    }
+
+    .burger {
+      display: grid;
+    }
+
+    .mobile {
+      inset-block-start: 64px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .city__btn {
+      max-width: 40vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+</style>
+
+<script>
+
+  const disclosures = document.querySelectorAll<HTMLElement>('[data-disclosure]');
+
+  function closeAll(except?: HTMLElement) {
+    disclosures.forEach((d) => {
+      if (d === except) return;
+      d.removeAttribute('data-open');
+      d.querySelector('button')?.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  disclosures.forEach((d) => {
+    const btn = d.querySelector('button');
+    btn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = d.hasAttribute('data-open');
+      closeAll(d);
+      if (open) {
+        d.removeAttribute('data-open');
+        btn.setAttribute('aria-expanded', 'false');
+      } else {
+        d.setAttribute('data-open', '');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  document.addEventListener('click', () => closeAll());
+
+  const burger = document.querySelector<HTMLButtonElement>('.burger');
+  const mobile = document.querySelector<HTMLElement>('#mobile-menu');
+
+  function setMenu(open: boolean) {
+    burger?.setAttribute('aria-expanded', String(open));
+    if (mobile) mobile.hidden = !open;
+
+    document.body.style.overflow = open ? 'hidden' : '';
+
+    document.querySelectorAll<HTMLElement>('main, footer').forEach((el) => {
+      el.inert = open;
+    });
+  }
+
+  burger?.addEventListener('click', () => {
+    setMenu(burger.getAttribute('aria-expanded') !== 'true');
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeAll();
+    if (burger?.getAttribute('aria-expanded') === 'true') {
+      setMenu(false);
+      burger.focus();
+    }
+  });
+</script>

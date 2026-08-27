@@ -1,0 +1,616 @@
+---
+import { CITY } from '@/lib/city';
+import { WARRANTY } from '@/config/site';
+import RatingBadge from '@/components/RatingBadge.astro';
+import { telHref, typo } from '@/lib/format';
+
+interface Props {
+  variant?: 'card' | 'section' | 'inline';
+  id?: string;
+  heading?: string;
+  text?: string;
+
+  subject?: string;
+}
+
+const {
+  variant = 'section',
+  id = 'zayavka',
+  heading = 'Вызвать мастера',
+  text = 'Оставьте номер — перезвоним за 5 минут, назовём цену и время выезда.',
+  subject = '',
+} = Astro.props;
+
+const phone = CITY.phoneCity || CITY.phoneMobile;
+const isCard = variant === 'card';
+const isInline = variant === 'inline';
+const formId = `${id}-form`;
+---
+
+{isInline ? (
+  <form class="lead-form form-inline" id={id} action="/api/lead" method="post" novalidate data-phone={phone} data-tel={telHref(phone)}>
+    <input type="hidden" name="city" value={CITY.slug} />
+    <input type="hidden" name="subject" value={subject} />
+    <input type="hidden" name="page" value={Astro.url.pathname} />
+    <p class="trap" aria-hidden="true">
+      <label>Не заполняйте<input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+    </p>
+
+    <div class="form-inline__row">
+      <div class="field field--bare">
+        <label class="visually-hidden" for={`${formId}-name`}>Имя</label>
+        <input id={`${formId}-name`} name="name" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Как вас зовут" required minlength="2" />
+      </div>
+
+      <div class="field field--bare">
+        <label class="visually-hidden" for={`${formId}-phone`}>Телефон</label>
+        <input id={`${formId}-phone`} name="phone" type="tel" inputmode="tel" autocomplete="tel" spellcheck="false" enterkeyhint="send" placeholder="+7 (___) ___-__-__" required aria-describedby={`${formId}-phone-error`} />
+        <p class="field__error" id={`${formId}-phone-error`} data-error-for="phone" hidden>Нужно 11 цифр</p>
+      </div>
+
+      <button class="btn btn--primary form-inline__submit" type="submit" data-goal="lead-submit">
+        Вызвать мастера
+      </button>
+    </div>
+
+    <div class="form-inline__foot">
+      <label class="consent">
+        <input type="checkbox" name="consent" required />
+        <span>Согласен на <a href="/soglasie/">обработку персональных данных</a></span>
+      </label>
+
+      <p class="form-inline__or">
+        <span>или позвоните</span>
+        <a class="form-inline__phone" href={telHref(phone)} data-goal="phone-hero-form">{phone}</a>
+      </p>
+    </div>
+
+    <p class="status" role="status" aria-live="polite"></p>
+  </form>
+) : isCard ? (
+  <div class="panel" id={id}>
+    <p class="panel__title">{heading}</p>
+    <p class="panel__text small">{text}</p>
+    <slot name="form" />
+    <form class="lead-form" action="/api/lead" method="post" novalidate data-phone={phone} data-tel={telHref(phone)}>
+      <input type="hidden" name="city" value={CITY.slug} />
+      <input type="hidden" name="subject" value={subject} />
+      <input type="hidden" name="page" value={Astro.url.pathname} />
+      <p class="trap" aria-hidden="true">
+        <label>Не заполняйте<input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+      </p>
+
+      <div class="field">
+        <label for={`${formId}-name`}>Имя</label>
+        <input id={`${formId}-name`} name="name" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Как к вам обращаться" required minlength="2" />
+      </div>
+
+      <div class="field">
+        <label for={`${formId}-phone`}>Телефон</label>
+        <input id={`${formId}-phone`} name="phone" type="tel" inputmode="tel" autocomplete="tel" spellcheck="false" enterkeyhint="send" placeholder="+7 (___) ___-__-__" required aria-describedby={`${formId}-phone-error`} />
+        <p class="field__error" id={`${formId}-phone-error`} data-error-for="phone" hidden>Нужно 11 цифр</p>
+      </div>
+
+      <label class="consent">
+        <input type="checkbox" name="consent" required />
+        <span>Согласен на <a href="/soglasie/">обработку данных</a></span>
+      </label>
+
+      <button class="btn btn--primary btn--block" type="submit" data-goal="lead-submit">
+        Вызвать мастера
+      </button>
+
+      <p class="panel__or small">
+        <span>или позвоните</span>
+        <a class="panel__phone" href={telHref(phone)} data-goal="phone-hero-form">{phone}</a>
+      </p>
+
+      <p class="status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+) : (
+  <section class="cta" id={id} aria-labelledby={`${id}-heading`}>
+    <div class="container cta__inner">
+      <div>
+        <p class="eyebrow">Заявка</p>
+        <h2 id={`${id}-heading`}>{typo(heading)}</h2>
+        <p class="cta__sub">{text}</p>
+        <ul class="benefits">
+          <li>Выезд по {CITY.dative} — в среднем {CITY.arrivalMinutes} минут</li>
+          <li>Диагностика бесплатно при согласии на ремонт</li>
+          <li>{WARRANTY.text}</li>
+          <li>Оплата после ремонта, чек и гарантийный талон</li>
+        </ul>
+
+        <RatingBadge invert class="cta__rate" />
+      </div>
+
+      <div class="panel panel--section">
+        <form class="lead-form" action="/api/lead" method="post" novalidate data-phone={phone} data-tel={telHref(phone)}>
+          <input type="hidden" name="city" value={CITY.slug} />
+          <input type="hidden" name="subject" value={subject} />
+          <input type="hidden" name="page" value={Astro.url.pathname} />
+          <p class="trap" aria-hidden="true">
+            <label>Не заполняйте<input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+          </p>
+
+          <div class="field">
+            <label for={`${formId}-name`}>Имя</label>
+            <input id={`${formId}-name`} name="name" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Как к вам обращаться" required minlength="2" />
+          </div>
+
+          <div class="field">
+            <label for={`${formId}-phone`}>Телефон</label>
+            <input id={`${formId}-phone`} name="phone" type="tel" inputmode="tel" autocomplete="tel" spellcheck="false" enterkeyhint="send" placeholder="+7 (___) ___-__-__" required aria-describedby={`${formId}-phone-error`} />
+            <p class="field__error" id={`${formId}-phone-error`} data-error-for="phone" hidden>Нужно 11 цифр</p>
+          </div>
+
+          <label class="consent">
+            <input type="checkbox" name="consent" required />
+            <span>
+              Согласен на <a href="/soglasie/">обработку персональных данных</a> и принимаю
+              <a href="/politika-konfidencialnosti/">политику конфиденциальности</a>
+            </span>
+          </label>
+
+          <button class="btn btn--primary btn--block btn--lg" type="submit" data-goal="lead-submit">
+            Вызвать мастера
+          </button>
+          <p class="note small muted">
+            Перезвоним {CITY.workHours.days} с {CITY.workHours.open} до {CITY.workHours.close}
+          </p>
+          <p class="status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+
+  .panel__or {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-2);
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+  }
+
+  .panel__phone {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .panel__phone:hover {
+    color: var(--accent-text);
+  }
+
+  .form-inline {
+    container-type: inline-size;
+    margin-top: var(--sp-6);
+    max-width: 42rem;
+  }
+
+  .form-inline__row {
+    display: grid;
+    gap: var(--sp-3);
+  }
+
+  @container (min-width: 420px) {
+    .form-inline__row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .form-inline__submit {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @container (min-width: 530px) {
+    .form-inline__row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    }
+
+    .form-inline__submit {
+      grid-column: auto;
+    }
+  }
+
+  .field--bare {
+    position: relative;
+    gap: 0;
+  }
+
+  .field--bare .field__error {
+    margin-top: var(--sp-1);
+  }
+
+  @container (min-width: 420px) {
+    .field--bare .field__error {
+      position: absolute;
+      top: calc(100% + var(--sp-1));
+      left: 0;
+      right: 0;
+      margin-top: 0;
+    }
+
+    .form-inline__row:has(.field__error:not([hidden])) {
+      margin-bottom: var(--sp-5);
+    }
+  }
+
+  .form-inline .field input {
+    background: var(--bg-raised);
+    border-color: var(--line-strong);
+  }
+
+  .form-inline .field input:focus {
+    border-color: var(--accent);
+  }
+
+  .form-inline .field input[aria-invalid='true'] {
+    border-color: var(--danger);
+  }
+
+  .form-inline__submit {
+    white-space: nowrap;
+  }
+
+  .form-inline__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-1) var(--sp-5);
+    margin-top: var(--sp-2);
+  }
+
+  .form-inline__or {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .form-inline__phone {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .form-inline__phone:hover {
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+
+  .cta {
+    padding-block: var(--section-y);
+    background: var(--bg-inverse);
+  }
+
+  .cta :global(h2),
+  .cta .cta__sub,
+  .cta .benefits li {
+    color: var(--text-inverse);
+  }
+
+  .cta .cta__sub,
+  .cta .benefits li {
+    opacity: 0.75;
+  }
+
+  .cta :global(.eyebrow) {
+    color: var(--text-inverse);
+    opacity: 0.55;
+  }
+
+  .cta__inner {
+    display: grid;
+    gap: var(--sp-7);
+    align-items: center;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 900px) {
+    .cta__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
+      gap: var(--sp-8);
+    }
+
+    .cta .benefits {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--sp-6);
+    }
+  }
+
+  .cta__sub {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+    max-width: 46ch;
+  }
+
+  .cta :global(.cta__rate) {
+    margin-top: var(--sp-6);
+  }
+
+  .benefits {
+    margin-top: var(--sp-6);
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .benefits li {
+    position: relative;
+    padding-left: 2rem;
+    color: var(--text);
+  }
+
+  .benefits li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.45em;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    background: var(--pos-50)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%230e8f63' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2 4.8 8.5 9.5 3.8'/%3E%3C/svg%3E")
+      center / 0.72rem no-repeat;
+  }
+
+  .panel {
+    padding: var(--sp-6);
+    background: var(--bg-raised);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-3);
+  }
+
+  .cta .benefits li::before {
+    background-color: color-mix(in srgb, var(--text-inverse) 18%, transparent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2 4.8 8.5 9.5 3.8'/%3E%3C/svg%3E");
+  }
+
+  .panel--section {
+    box-shadow: var(--shadow-3);
+  }
+
+  .panel__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 800;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+  }
+
+  .panel__text {
+    margin-top: var(--sp-2);
+    margin-bottom: var(--sp-5);
+    color: var(--text-muted);
+    line-height: var(--lh-snug);
+  }
+
+  .lead-form {
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .field {
+    display: grid;
+    gap: var(--sp-2);
+
+    min-width: 0;
+  }
+
+  .field input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .field label {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .field input {
+    min-height: 52px;
+    padding: 0 var(--sp-4);
+    font-size: 1rem;
+    color: var(--text-strong);
+    background: var(--bg-sunken);
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    transition: background-color 0.15s var(--ease), border-color 0.15s var(--ease),
+      box-shadow 0.15s var(--ease);
+  }
+
+  .panel--section .field input,
+  .section--sunken .field input {
+    background: color-mix(in srgb, var(--text-strong) 4%, transparent);
+  }
+
+  .field input::placeholder {
+    color: var(--text-faint);
+  }
+
+  .field input:focus {
+    outline: none;
+    background: var(--bg-raised);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  .field input[aria-invalid='true'] {
+    border-color: var(--danger);
+  }
+
+  .field:has(input:not(:placeholder-shown)) label {
+    color: var(--text-faint);
+  }
+
+  .field:has(input[aria-invalid='true']) label {
+    color: var(--danger);
+  }
+
+  .consent:has(input:checked) {
+    color: var(--text-faint);
+  }
+
+  .field__error {
+    font-size: var(--fs-sm);
+    color: var(--danger);
+  }
+
+  .consent {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--sp-3);
+    align-items: start;
+    padding-block: var(--sp-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .consent input {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    accent-color: var(--accent);
+  }
+
+  .note {
+    text-align: center;
+  }
+
+  .status:empty {
+    display: none;
+  }
+
+  .status {
+    padding: var(--sp-3);
+    border-radius: var(--r);
+    background: var(--pos-50);
+    color: var(--pos-700);
+    font-size: var(--fs-sm);
+    text-align: center;
+  }
+
+  .status--error {
+    background: var(--danger-50);
+    color: var(--danger);
+  }
+
+  .status :global(.status__tel) {
+    display: inline-block;
+    padding-block: var(--sp-1);
+    font-weight: 700;
+    color: var(--danger);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    white-space: nowrap;
+  }
+</style>
+
+<script>
+
+  document.querySelectorAll<HTMLFormElement>('.lead-form').forEach((form) => {
+    const phoneInput = form.querySelector<HTMLInputElement>('input[name="phone"]');
+    const phoneError = form.querySelector<HTMLElement>('[data-error-for="phone"]');
+    const status = form.querySelector<HTMLElement>('.status');
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (!phoneInput || !submit) return;
+
+    const digitsOf = (v: string) => v.replace(/\D/g, '');
+
+    phoneInput.addEventListener('input', () => {
+      let d = digitsOf(phoneInput.value);
+      if (d.startsWith('8')) d = '7' + d.slice(1);
+      if (!d.startsWith('7')) d = '7' + d;
+      d = d.slice(0, 11);
+
+      const parts = ['+7'];
+      if (d.length > 1) parts.push(` (${d.slice(1, 4)}`);
+      if (d.length >= 4) parts.push(`) ${d.slice(4, 7)}`);
+      if (d.length >= 7) parts.push(`-${d.slice(7, 9)}`);
+      if (d.length >= 9) parts.push(`-${d.slice(9, 11)}`);
+      phoneInput.value = parts.join('');
+
+      phoneInput.removeAttribute('aria-invalid');
+      if (phoneError) phoneError.hidden = true;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (digitsOf(phoneInput.value).length !== 11) {
+        phoneInput.setAttribute('aria-invalid', 'true');
+        if (phoneError) phoneError.hidden = false;
+        phoneInput.focus();
+        return;
+      }
+      if (!form.reportValidity()) return;
+
+      const label = submit.textContent;
+      submit.disabled = true;
+      submit.textContent = 'Отправляем…';
+
+      try {
+        const body = new URLSearchParams();
+        new FormData(form).forEach((value, key) => body.append(key, String(value)));
+
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          },
+        });
+        if (!res.ok) throw new Error(String(res.status));
+
+        if (window.__ymId) window.ym?.(window.__ymId, 'reachGoal', 'lead');
+        window.location.assign('/spasibo/');
+      } catch {
+        submit.disabled = false;
+        submit.textContent = label;
+        if (!status) return;
+
+        status.classList.add('status--error');
+        status.textContent = 'Не удалось отправить. Позвоните — примем заявку по телефону: ';
+
+        const tel = form.dataset.tel;
+        const shown = form.dataset.phone;
+        if (tel && shown) {
+          const a = document.createElement('a');
+          a.href = tel;
+          a.textContent = shown;
+          a.className = 'status__tel';
+          status.append(a);
+        }
+      }
+    });
+  });
+</script>

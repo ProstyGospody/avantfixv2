@@ -1,0 +1,481 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import BrandStrip from '@/components/BrandStrip.astro';
+import PriceCalculator from '@/components/PriceCalculator.astro';
+import Benefits from '@/components/Benefits.astro';
+import PriceTable from '@/components/PriceTable.astro';
+import LinkGrid from '@/components/LinkGrid.astro';
+import Faq from '@/components/Faq.astro';
+import LeadForm from '@/components/LeadForm.astro';
+import Reviews from '@/components/Reviews.astro';
+import Steps from '@/components/Steps.astro';
+import Districts from '@/components/Districts.astro';
+
+import { APPLIANCES, brandSlug, faultShort, type Appliance, type Fault } from '@/data/appliances';
+import { brandNote } from '@/data/brands';
+import { CITY } from '@/lib/city';
+import { hubFaq } from '@/data/faq';
+import { faultCopy } from '@/data/faultCopy';
+import { localPriceOf, minWorkPrice } from '@/lib/pricing';
+import { duration, price, telHref } from '@/lib/format';
+import { absoluteUrl, buildTitle, DESC_MAX } from '@/lib/seo';
+import { breadcrumbs, faq as faqSchema, howToRepair, service, type QA } from '@/lib/schema';
+import { WARRANTY } from '@/config/site';
+import { reviewsFor } from '@/data/reviews';
+
+export function getStaticPaths() {
+  return APPLIANCES.flatMap((appliance) => [
+    ...appliance.faults.map((fault) => ({
+      params: { appliance: appliance.slug, page: fault.slug },
+      props: { kind: 'fault' as const, appliance, fault },
+    })),
+    ...appliance.brands.map((brand) => ({
+      params: { appliance: appliance.slug, page: brandSlug(brand) },
+      props: { kind: 'brand' as const, appliance, brand },
+    })),
+  ]);
+}
+
+type Props =
+  | { kind: 'fault'; appliance: Appliance; fault: Fault }
+  | { kind: 'brand'; appliance: Appliance; brand: string };
+
+const props = Astro.props as Props;
+const { appliance } = props;
+const hubHref = `/${appliance.slug}/`;
+const hubName = `Ремонт ${appliance.genitivePlural}`;
+const phone = CITY.phoneCity || CITY.phoneMobile;
+
+let h1: string;
+let title: string;
+let description: string;
+let schema: Record<string, unknown>[];
+
+const hasReviews = reviewsFor(CITY.slug).length > 0;
+
+const isBrand = props.kind === 'brand';
+
+let faqItems: QA[];
+let crumbName: string;
+let path: string;
+
+let fc: ReturnType<typeof faultCopy> | null = null;
+
+if (props.kind === 'fault') {
+  const { fault } = props;
+  const workPrice = localPriceOf(fault.priceFrom, CITY);
+  fc = faultCopy(appliance, fault, CITY);
+
+  h1 = `${fault.title} ${CITY.inPrep}`;
+  crumbName = fault.title;
+  path = `${hubHref}${fault.slug}/`;
+  title = buildTitle(fault.title, `ремонт ${CITY.inPrep} от ${price(workPrice)}`);
+
+  const withSymptom =
+    `${fault.title} ${CITY.inPrep}: ${fault.symptom}. Цена и сроки ремонта. ` +
+    `Работа от ${price(workPrice)}, срок ${duration(fault.durationMin)}.`;
+  const short =
+    `${fault.title} ${CITY.inPrep}: причины, цена и сроки ремонта. ` +
+    `Работа от ${price(workPrice)}, срок ${duration(fault.durationMin)}, выезд в день обращения.`;
+  description = withSymptom.length <= DESC_MAX ? withSymptom : short;
+  faqItems = fc.faq;
+  schema = [
+    howToRepair(appliance, fault.title, CITY, fc.steps, fault.durationMin, workPrice),
+    breadcrumbs([
+      { name: 'Главная', url: absoluteUrl('/', CITY) },
+      { name: hubName, url: absoluteUrl(hubHref, CITY) },
+      { name: fault.title },
+    ]),
+    faqSchema(faqItems),
+  ];
+} else {
+  const { brand } = props;
+
+  h1 = `Ремонт ${appliance.genitivePlural} ${brand} ${CITY.inPrep}`;
+  crumbName = brand;
+  path = `${hubHref}${brandSlug(brand)}/`;
+  title = buildTitle(h1, `от ${price(minWorkPrice(appliance, CITY))}`);
+  description =
+    `Ремонт ${appliance.genitivePlural} ${brand} на дому ${CITY.inPrep}: выезд за ` +
+    `${CITY.arrivalMinutes} минут, диагностика бесплатно, работа от ${price(minWorkPrice(appliance, CITY))}, ` +
+    `гарантия до ${WARRANTY.workMonths} мес.`;
+  faqItems = hubFaq(appliance, CITY);
+  schema = [
+    service(appliance, CITY),
+    breadcrumbs([
+      { name: 'Главная', url: absoluteUrl('/', CITY) },
+      { name: hubName, url: absoluteUrl(hubHref, CITY) },
+      { name: brand },
+    ]),
+    faqSchema(faqItems),
+  ];
+}
+
+const otherFaults = appliance.faults.filter(
+  (f) => props.kind !== 'fault' || f.slug !== props.fault.slug,
+);
+
+const note = props.kind === 'brand' ? brandNote(brandSlug(props.brand)) : null;
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  {
+    props.kind === 'fault' ? (
+      <PageHero
+        eyebrow={hubName}
+        h1={h1}
+        lead={`Как это выглядит: ${props.fault.symptom}. Устраняем на дому ${CITY.inPrep}, в большинстве случаев за один визит.`}
+        applianceSlug={appliance.slug}
+        mediaAlt={hubName}
+        form
+        formSubject={`${appliance.short}: ${props.fault.title}`}
+        crumbs={[{ name: hubName, href: hubHref }, { name: crumbName }]}
+        facts={[
+          { value: `от ${price(localPriceOf(props.fault.priceFrom, CITY))}`, label: 'работа мастера' },
+          { value: duration(props.fault.durationMin), label: 'срок ремонта' },
+          { value: `${CITY.arrivalMinutes} мин`, label: 'выезд' },
+          { value: `${WARRANTY.workMonths} мес.`, label: 'гарантия' },
+        ]}
+      >
+        <Fragment slot="actions">
+          <a class="btn btn--soft" href={`${hubHref}ceny/`}>Полный прайс</a>
+        </Fragment>
+
+      </PageHero>
+    ) : (
+      <PageHero
+        eyebrow={hubName}
+        h1={h1}
+        lead={
+          note?.trait ??
+          `Ремонтируем ${appliance.genitivePlural} ${props.brand} на дому ${CITY.inPrep} с гарантией на работу и запчасти.`
+        }
+        crumbs={[{ name: hubName, href: hubHref }, { name: crumbName }]}
+        facts={[
+          { value: `от ${price(minWorkPrice(appliance, CITY))}`, label: 'работа мастера' },
+          { value: '0 ₽', label: 'выезд и диагностика' },
+          { value: `${CITY.arrivalMinutes} мин`, label: 'выезд' },
+          { value: `${WARRANTY.workMonths} мес.`, label: 'гарантия' },
+        ]}
+        brand={props.brand}
+        form
+        formSubject={`${appliance.short} ${props.brand}`}
+      >
+        <Fragment slot="actions">
+          <a class="btn btn--soft" href={`${hubHref}ceny/`}>Цены на ремонт</a>
+        </Fragment>
+
+      </PageHero>
+    )
+  }
+  {
+    props.kind === 'fault' && (
+      <>
+        <section class="section">
+          <div class="container">
+
+            <div class="section-head">
+              <p class="eyebrow">Причины</p>
+              <h2>Почему это происходит</h2>
+              <p>
+                Определить нужную причину без прибора нельзя, поэтому мастер
+                начинает с диагностики, а не с замены деталей наугад.
+              </p>
+            </div>
+            <ol class="causes">
+              {props.fault.causes.map((c) => (
+                <li class="cause">
+                  <span class="cause__mark" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8.8" cy="8.8" r="5.3" />
+                      <path d="m12.8 12.8 3.7 3.7" />
+                    </svg>
+                  </span>
+                  <span class="cause__text">{c}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section class="section section--sunken">
+          <div class="container two-col">
+
+            <div class="two-col__head">
+              <div class="section-head">
+                <p class="eyebrow">Порядок работы</p>
+                <h2>Как мастер устраняет неисправность</h2>
+              </div>
+
+              <aside class="warn">
+                <p class="warn__title">
+                  <span class="warn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 4.2 21 19.4H3Z" />
+                      <path d="M12 10v3.6M12 16.6h.01" />
+                    </svg>
+                  </span>
+                  Что сделать до приезда мастера
+                </p>
+                <p class="warn__text">{fc?.beforeArrival}</p>
+              </aside>
+            </div>
+
+            <ol class="steps">
+              {(fc?.steps ?? []).map((s, i) => (
+                <li>
+                  <span class="steps__num" aria-hidden="true">{i + 1}</span>
+                  <div>
+                    <h3>{s.name}</h3>
+                    <p class="muted">{s.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      </>
+    )
+  }
+
+  {
+    props.kind === 'brand' && note && (
+      <section class="section">
+        <div class="container two-col">
+          <div class="two-col__head">
+            <div class="section-head">
+              <p class="eyebrow">Особенности марки</p>
+              <h2>Что ломается у {props.brand} чаще всего</h2>
+            </div>
+
+            <aside class="plate">
+              <p class="plate__head">
+                <span class="plate__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.2" y="6" width="17.6" height="12" rx="2.2" />
+                    <path d="M6.8 10.2h6.4M6.8 13.6h4.2" />
+                  </svg>
+                </span>
+                Назовите модель — это ускорит ремонт
+              </p>
+              <p class="plate__text">{appliance.platePlace}</p>
+            </aside>
+
+          </div>
+          <div class="prose">
+
+            <p class="statement__lead">{note.weak}</p>
+            <h3>Запчасти и сроки</h3>
+            <p>
+              {note.parts} Мастер приезжает с ходовым набором деталей, поэтому
+              большинство поломок {appliance.genitivePlural} {props.brand} закрываем
+              за один визит. Если нужна редкая позиция — назовём срок поставки
+              сразу после диагностики, техника при этом остаётся у вас.
+            </p>
+
+            <p class="small muted">
+              Официальных сервисных статусов у нас нет — мы независимый сервис
+              и говорим об этом прямо.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <LinkGrid
+    heading={
+      props.kind === 'fault'
+        ? `Другие неисправности ${appliance.genitivePlural}`
+        : `С какими поломками ${appliance.genitivePlural} обращаются чаще всего`
+    }
+    eyebrow="Неисправности"
+    sunken={isBrand}
+    fallback={`Ваш симптом не в списке? Так бывает: он закрывает типовые обращения, но не все. Опишите проблему — разберёмся по телефону.`}
+    items={otherFaults.map((f) => ({
+      href: `${hubHref}${f.slug}/`,
+      title: faultShort(f, appliance),
+      price: `от ${price(localPriceOf(f.priceFrom, CITY))}`,
+      note: duration(f.durationMin),
+    }))}
+  />
+
+  <PriceCalculator
+    preselect={appliance.slug}
+    preselectFault={props.kind === 'fault' ? props.fault.slug : undefined}
+    sunken={!isBrand}
+  />
+
+  <PriceTable appliance={appliance} limit={8} moreHref={`${hubHref}ceny/`} sunken={isBrand} />
+
+  <Benefits sunken={!isBrand} />
+
+  {props.kind === 'brand' && <Steps sunken />}
+  {props.kind === 'brand' && <Districts subject={appliance.genitivePlural} />}
+
+  <Reviews appliance={appliance.slug} limit={3} sunken={isBrand} />
+
+  <LeadForm
+    subject={
+      props.kind === 'brand'
+        ? `${appliance.short} ${props.brand}`
+        : `${appliance.short}: ${props.fault.title}`
+    }
+  />
+
+  {props.kind === 'fault' && <BrandStrip appliance={appliance} sunken />}
+
+  <Faq items={faqItems} />
+</BaseLayout>
+
+<style>
+
+  .two-col__head :global(.section-head) {
+    margin-bottom: var(--sp-6);
+  }
+
+  .causes {
+    display: grid;
+    gap: var(--sp-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 760px) {
+    .causes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .cause {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+    background: var(--cause-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+  }
+
+  .section--sunken .cause {
+    --cause-bg: var(--bg-raised);
+  }
+
+  .cause__mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+
+  .cause__mark svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cause__text {
+    font-size: var(--fs-base);
+    line-height: var(--lh-snug);
+    color: var(--text-strong);
+  }
+
+  .steps {
+    --node: 34px;
+    display: grid;
+    gap: var(--sp-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: 66ch;
+  }
+
+  .steps li {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--sp-4);
+  }
+
+  .steps li:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: calc((var(--node) - 2px) / 2);
+    top: var(--node);
+    bottom: calc(var(--sp-6) * -1);
+    width: 2px;
+    background: var(--line-strong);
+  }
+
+  .steps h3 {
+    font-size: var(--fs-lg);
+  }
+
+  .steps p {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+  }
+
+  .steps__num {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    border-radius: 50%;
+    background: var(--accent-soft);
+
+    box-shadow: 0 0 0 5px var(--bg-sunken);
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+
+  .warn {
+    padding: var(--sp-5);
+    background: var(--warn-50);
+    border-radius: var(--r-lg);
+  }
+
+  .warn__title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--warn-600);
+  }
+
+  .warn__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--warn-600) 12%, transparent);
+    color: var(--warn-600);
+  }
+
+  .warn__icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .warn__text {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text);
+  }
+
+</style>

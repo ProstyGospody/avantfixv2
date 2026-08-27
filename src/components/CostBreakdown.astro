@@ -1,0 +1,75 @@
+---
+import type { Appliance } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { priceRange } from '@/lib/pricing';
+import { price } from '@/lib/format';
+
+interface Props {
+  appliance: Appliance;
+}
+
+const { appliance } = Astro.props;
+const range = priceRange(appliance, CITY);
+
+const rows = [
+  { title: 'Выезд мастера', value: '0 ₽', note: `по ${CITY.dative}, в согласованное время` },
+  { title: 'Диагностика', value: '0 ₽', note: 'при согласии на ремонт' },
+  { title: 'Работа', value: `от ${price(range.min)}`, note: 'фиксируется до начала ремонта' },
+  { title: 'Запчасти', value: 'по факту', note: 'цену называем до установки' },
+];
+---
+
+<ul class="bill">
+  {
+    rows.map((row) => (
+      <li class="bill__item">
+        <p class="bill__title">{row.title}</p>
+        <p class="bill__value">{row.value}</p>
+        <p class="bill__note">{row.note}</p>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+
+  .bill {
+    display: grid;
+    gap: var(--sp-5) var(--sp-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  }
+
+  .bill__item {
+    padding-top: var(--sp-4);
+    border-top: 2px solid var(--line-strong);
+  }
+
+  .bill__title {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .bill__value {
+    margin-top: var(--sp-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 800;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bill__note {
+    margin-top: var(--sp-2);
+    max-width: 24ch;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+</style>

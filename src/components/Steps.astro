@@ -1,0 +1,162 @@
+---
+import { CITY } from '@/lib/city';
+import { typo } from '@/lib/format';
+import { STEPS_COPY } from '@/data/copy';
+
+interface Props {
+  heading?: string;
+  eyebrow?: string;
+  sunken?: boolean;
+
+  items?: { when: string; title: string; text: string }[];
+}
+
+const {
+  heading = 'Как проходит ремонт',
+  eyebrow = 'Порядок работы',
+  sunken = false,
+  items,
+} = Astro.props;
+
+const steps = items ?? STEPS_COPY[CITY.slug];
+---
+
+<section class:list={['section', sunken && 'section--sunken']} aria-labelledby="steps-heading">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id="steps-heading">{typo(heading)}</h2>
+    </div>
+
+    <ol class="steps reveal" style={`--step-cols:${steps.length}`}>
+      {
+        steps.map((s, i) => (
+          <li class="step">
+            <span class="step__num" aria-hidden="true">{i + 1}</span>
+            <p class="step__when">{s.when}</p>
+            <h3 class="step__title">{s.title}</h3>
+            <p class="step__text">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+
+  .steps {
+    --node: 40px;
+    --line: 2px;
+
+    overflow-x: clip;
+    overflow-clip-margin: 8px;
+    display: grid;
+    gap: var(--sp-7) var(--sp-6);
+    padding: 0;
+    list-style: none;
+
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 560px) {
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 560px) and (max-width: 999px) {
+    .steps:has(> :nth-child(3):last-child) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .steps {
+      grid-template-columns: repeat(var(--step-cols, 4), minmax(0, 1fr));
+    }
+  }
+
+  .step {
+    position: relative;
+    padding-top: calc(var(--node) + var(--sp-5));
+  }
+
+  .step::before {
+    content: '';
+    position: absolute;
+    inset-inline: calc(var(--node) / 2) calc(var(--sp-6) * -1);
+    top: calc((var(--node) - var(--line)) / 2);
+    height: var(--line);
+    background: var(--line-strong);
+  }
+
+  .step:last-child::before {
+    display: none;
+  }
+
+  @media (min-width: 560px) and (max-width: 999px) {
+    .step:nth-child(2n)::before {
+      display: none;
+    }
+  }
+
+  .step__when {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+
+  .step__num {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    border-radius: 50%;
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 6px var(--step-ring, var(--bg));
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 800;
+    color: var(--accent-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section--sunken .steps {
+    --step-ring: var(--bg-sunken);
+  }
+
+  @media (max-width: 620px) {
+    .step {
+      padding-top: 0;
+      padding-left: calc(var(--node) + var(--sp-5));
+      min-height: var(--node);
+    }
+
+    .step::before {
+      inset-inline: calc((var(--node) - var(--line)) / 2) auto;
+      top: var(--node);
+      bottom: calc(var(--sp-7) * -1);
+      width: var(--line);
+      height: auto;
+    }
+  }
+
+  .step__title {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-lg);
+  }
+
+  .step__text {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-base);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+</style>

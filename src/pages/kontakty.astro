@@ -1,0 +1,372 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import heroPhoto from '@/images/hero-kontakty.png';
+import Districts from '@/components/Districts.astro';
+import LeadForm from '@/components/LeadForm.astro';
+
+import { CITY } from '@/lib/city';
+import { BRAND, SOCIAL } from '@/config/site';
+import { telHref } from '@/lib/format';
+import { absoluteUrl, buildTitle } from '@/lib/seo';
+import { breadcrumbs } from '@/lib/schema';
+
+const h1 = `Контакты ${CITY.inPrep}`;
+const title = buildTitle(`Контакты сервиса ${CITY.inPrep}`, 'телефон и часы работы');
+const description =
+  `Как связаться с сервисом ${BRAND.name} ${CITY.inPrep}: телефон, почта, часы работы ` +
+  `и районы выезда. Принимаем заявки ${CITY.workHours.days} с ${CITY.workHours.open} до ${CITY.workHours.close}.`;
+
+const phones = [
+  {
+    label: 'Городской',
+    value: CITY.phoneCity,
+    note: `Обычный городской номер ${CITY.inPrep} — звонок со стационарного телефона бесплатный`,
+  },
+  {
+    label: 'Мобильный',
+    value: CITY.phoneMobile,
+    note: 'Тот же диспетчер. Сюда же можно прислать фото таблички с моделью',
+  },
+].filter((p) => p.value);
+
+const hasRequisites = Boolean(BRAND.inn);
+
+const schema = [
+  breadcrumbs([{ name: 'Главная', url: absoluteUrl('/', CITY) }, { name: 'Контакты' }]),
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <PageHero
+    eyebrow="Связаться с нами"
+    h1={h1}
+    lead="Принимаем заявки по телефону и через форму. Перезваниваем в течение нескольких минут в рабочее время."
+    crumbs={[{ name: 'Контакты' }]}
+    photo={heroPhoto}
+    photoStands
+    mediaAlt="Сотрудница сервиса разговаривает по телефону с клиентом"
+    form
+    facts={[
+      { value: `${CITY.workHours.open}–${CITY.workHours.close}`, label: CITY.workHours.days },
+      { value: `${CITY.arrivalMinutes} мин`, label: 'выезд' },
+      { value: String(CITY.districts.length), label: 'районов' },
+    ]}
+  >
+
+    <Fragment slot="actions">
+      <a class="btn btn--soft" href={`mailto:${BRAND.email}`}>Написать на почту</a>
+    </Fragment>
+  </PageHero>
+
+  <section class="section section--tight">
+    <div class="container">
+      <ul class="ways">
+        {
+          phones.map((p) => (
+            <li class="way">
+              <span class="way__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6.6 3.5h3l1.5 3.7-1.9 1.1a11 11 0 0 0 4.5 4.5l1.1-1.9 3.7 1.5v3a1.6 1.6 0 0 1-1.7 1.6A14.5 14.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.6 3.5Z" />
+                </svg>
+              </span>
+              <p class="way__label small muted">{p.label}</p>
+              <a class="way__value" href={telHref(p.value)} data-goal="phone-contacts">
+                {p.value}
+              </a>
+              <p class="way__note small muted">{p.note}</p>
+            </li>
+          ))
+        }
+
+        <li class="way">
+          <span class="way__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2.4" />
+              <path d="m3.6 6.4 8.4 6 8.4-6" />
+            </svg>
+          </span>
+          <p class="way__label small muted">Почта</p>
+          <a class="way__value way__value--sm" href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
+          <p class="way__note small muted">Для документов, счетов и обращений по гарантии</p>
+        </li>
+
+        {
+          SOCIAL.whatsapp && (
+            <li class="way">
+              <span class="way__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.5 11.7a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.4-4.5a8.4 8.4 0 1 1 15.6-4.3Z" />
+                </svg>
+              </span>
+              <p class="way__label small muted">WhatsApp</p>
+              <a class="way__value way__value--sm" href={`https://wa.me/${SOCIAL.whatsapp}`} rel="nofollow noopener" target="_blank">
+                Написать в мессенджер
+              </a>
+              <p class="way__note small muted">Удобно прислать фото таблички с моделью</p>
+            </li>
+          )
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--sunken">
+    <div class="container two-col">
+      <div class="section-head two-col__head">
+        <p class="eyebrow">Как мы работаем</p>
+        <h2>Что происходит после заявки</h2>
+      </div>
+
+      <div>
+        <ol class="flow">
+          <li>
+            <b>Перезваниваем за 5 минут.</b> Уточняем марку, модель и что именно
+            происходит с техникой — по описанию мастер уже понимает, что взять с собой.
+          </li>
+          <li>
+            <b>Согласуем время.</b> Называем ближайшее окно выезда. Работаем
+            {' '}{CITY.workHours.days} до {CITY.workHours.close}, вечерние часы тоже доступны.
+          </li>
+          <li>
+            <b>Мастер звонит за 15 минут до приезда.</b> Чтобы вам не ждать у двери.
+          </li>
+          <li>
+            <b>Срочные случаи берём вне очереди.</b> Потоп из стиральной машины
+            или размораживающийся холодильник с продуктами — скажите об этом сразу.
+          </li>
+        </ol>
+
+        {
+          CITY.address ? (
+            <div class="addr">
+              <p class="addr__title">Адрес</p>
+              <p>{CITY.address.street}, {CITY.name}, {CITY.address.postalCode}</p>
+              <p class="small muted">Приём техники в мастерскую — по договорённости.</p>
+            </div>
+          ) : (
+            <div class="addr">
+              <p class="addr__title">Мы работаем выездным сервисом</p>
+              <p class="small muted">
+                Постоянного приёмного пункта {CITY.inPrep} нет: мастер приезжает
+                к вам и ремонтирует технику на месте. Везти её никуда не нужно.
+              </p>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <Districts />
+
+  {
+    hasRequisites && (
+      <section class="section section--tight section--sunken">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Реквизиты</p>
+            <h2>Юридическая информация</h2>
+          </div>
+          <dl class="req">
+            {BRAND.legalName && <div><dt>Наименование</dt><dd>{BRAND.legalName}</dd></div>}
+            <div><dt>ИНН</dt><dd>{BRAND.inn}</dd></div>
+            {BRAND.ogrn && <div><dt>ОГРНИП</dt><dd>{BRAND.ogrn}</dd></div>}
+            <div><dt>E-mail</dt><dd>{BRAND.email}</dd></div>
+          </dl>
+        </div>
+      </section>
+    )
+  }
+
+  <LeadForm
+    heading="Оставить заявку"
+    text="Опишите проблему — перезвоним, уточним детали и назовём время выезда."
+  />
+</BaseLayout>
+
+<style>
+
+  .ways {
+    display: grid;
+    gap: var(--sp-4);
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  }
+
+  .way {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-4);
+    padding: var(--sp-5);
+    background: var(--bg-sunken);
+    border-radius: var(--r-lg);
+    transition:
+      background-color 0.16s var(--ease),
+      box-shadow 0.16s var(--ease);
+  }
+
+  .way:hover {
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-2);
+  }
+
+  .way:has(.way__value:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .way__icon {
+    grid-row: 1 / span 2;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+  }
+
+  .way:hover .way__icon {
+    background: var(--accent-soft);
+  }
+
+  .way__icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .way__label {
+    align-self: end;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+  }
+
+  .way__value {
+    align-self: start;
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 800;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .way__value::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .way__value:focus-visible {
+    outline: none;
+  }
+
+  .way__value--sm {
+    font-size: var(--fs-lg);
+    overflow-wrap: anywhere;
+  }
+
+  .way:hover .way__value {
+    color: var(--accent-text);
+  }
+
+  .way__note {
+    grid-column: 2;
+    margin-top: var(--sp-2);
+  }
+
+  .flow {
+    display: grid;
+    gap: var(--sp-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: flow;
+    max-width: 62ch;
+  }
+
+  .flow li {
+    counter-increment: flow;
+    position: relative;
+    padding-left: var(--sp-7);
+    color: var(--text-muted);
+  }
+
+  .flow li::before {
+    content: counter(flow);
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+
+  .addr {
+    margin-top: var(--sp-7);
+    padding: var(--sp-5);
+    background: var(--bg-raised);
+    border-radius: var(--r-lg);
+    max-width: 62ch;
+  }
+
+  .addr p {
+    max-width: 68ch;
+  }
+
+  .addr__title {
+    margin-bottom: var(--sp-2);
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .req {
+    display: grid;
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  .req > div {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) 2fr;
+    gap: var(--sp-4);
+    padding-block: var(--sp-4);
+  }
+
+  .req > div + div {
+    border-top: 1px solid var(--line);
+  }
+
+  .req dt {
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+  }
+
+  .req dd {
+    margin: 0;
+    color: var(--text-strong);
+  }
+
+  @media (max-width: 560px) {
+    .req > div {
+      grid-template-columns: 1fr;
+      gap: var(--sp-1);
+    }
+  }
+</style>

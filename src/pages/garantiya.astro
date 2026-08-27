@@ -1,0 +1,321 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import heroPhoto from '@/images/hero-garantiya.png';
+import Faq from '@/components/Faq.astro';
+import Steps from '@/components/Steps.astro';
+import LeadForm from '@/components/LeadForm.astro';
+
+import { CITY } from '@/lib/city';
+import { WARRANTY } from '@/config/site';
+import { absoluteUrl, buildTitle } from '@/lib/seo';
+import { breadcrumbs, faq as faqSchema } from '@/lib/schema';
+
+const h1 = `Гарантия на ремонт техники ${CITY.inPrep}`;
+const title = buildTitle('Гарантия на ремонт бытовой техники', `до ${WARRANTY.workMonths} месяцев`);
+const description =
+  `Гарантия на ремонт бытовой техники ${CITY.inPrep}: до ${WARRANTY.workMonths} месяцев ` +
+  `на работу и до ${WARRANTY.partsMonths} месяцев на запчасти. Сроки по видам работ, ` +
+  `порядок обращения и что в гарантию не входит.`;
+
+const terms = [
+  { work: 'Замена механических узлов (подшипники, амортизаторы, ролики)', months: 24 },
+  { work: 'Замена нагревательных элементов и термостатов', months: 12 },
+  { work: 'Замена насосов, клапанов, датчиков', months: 12 },
+  { work: 'Компонентный ремонт плат управления', months: 12 },
+  { work: 'Заправка холодильного контура с устранением утечки', months: 12 },
+  { work: 'Чистка и профилактическое обслуживание', months: 3 },
+];
+
+const covered = [
+  'Повторная поломка того же узла, который мы ремонтировали',
+  'Дефект установленной нами запчасти',
+  'Последствия ошибки мастера при разборке или сборке',
+  'Повторный выезд по гарантийному случаю — бесплатно и вне очереди',
+];
+
+const notCovered = [
+  'Поломка узла, который мы не ремонтировали и не заменяли',
+  'Вмешательство других мастеров после нашего ремонта',
+  'Механические повреждения корпуса и внутренних деталей',
+  'Залив электроники водой, в том числе при протечках в квартире',
+  'Выход из строя из-за скачков напряжения в сети',
+  'Естественный износ расходников: фильтров, уплотнителей, ламп',
+];
+
+const faqItems = [
+  {
+    q: 'Чем подтверждается гарантия?',
+    a: 'Гарантийным талоном, который мастер заполняет и отдаёт вам на месте: дата, модель техники, перечень выполненных работ, установленные запчасти и срок гарантии по каждой позиции. Плюс кассовый чек.',
+  },
+  {
+    q: 'Что делать, если поломка повторилась?',
+    a: `Позвоните и назовите номер талона. Приезжаем повторно ${CITY.inPrep} в приоритетном порядке и устраняем неисправность бесплатно, если она относится к выполненным нами работам.`,
+  },
+  {
+    q: 'А если непонятно, наш это случай или нет?',
+    a: 'Приезжаем и разбираемся на месте за свой счёт. Перекладывать на клиента поиск виноватого — плохая практика, и мы так не делаем.',
+  },
+  {
+    q: 'Гарантия действует на запчасть или на работу?',
+    a: `На то и другое, но сроки разные: до ${WARRANTY.workMonths} месяцев на работу мастера и до ${WARRANTY.partsMonths} месяцев на установленную деталь. Конкретный срок указывается в талоне.`,
+  },
+];
+
+const schema = [
+  breadcrumbs([{ name: 'Главная', url: absoluteUrl('/', CITY) }, { name: 'Гарантия' }]),
+  faqSchema(faqItems),
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <PageHero
+    eyebrow="Обязательства"
+    h1={h1}
+    lead={`${WARRANTY.text}. Срок зависит от вида работ и указывается в гарантийном талоне, который мастер выдаёт на руки сразу после ремонта.`}
+    crumbs={[{ name: 'Гарантия' }]}
+    photo={heroPhoto}
+    photoStands
+    mediaAlt="Мастер сервиса в фирменном поло показывает большой палец вверх"
+    form
+    formSubject="Гарантийный случай"
+    facts={[
+      { value: `${WARRANTY.workMonths} мес.`, label: 'на работу' },
+      { value: `${WARRANTY.partsMonths} мес.`, label: 'на запчасти' },
+      { value: '0 ₽', label: 'повторный выезд' },
+    ]}
+  >
+
+    <Fragment slot="actions">
+      <a class="btn btn--soft" href="#terms">Сроки по видам работ</a>
+    </Fragment>
+  </PageHero>
+
+  <section class="section" id="terms">
+    <div class="container">
+
+      <div class="section-head">
+        <p class="eyebrow">Сроки</p>
+        <h2>Гарантия по видам работ</h2>
+        <p>Срок зависит от того, что именно делал мастер. В талоне он указан по каждой позиции отдельно.</p>
+      </div>
+
+      <div class="terms-card">
+        <div class="table-wrap">
+          <table>
+            <caption class="visually-hidden">Сроки гарантии по видам работ</caption>
+            <thead>
+              <tr>
+                <th scope="col">Вид работ</th>
+                <th scope="col" class="num">Гарантия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                terms.map((t) => (
+                  <tr>
+                    <td>{t.work}</td>
+                    <td class="num">до {t.months} мес.</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--sunken">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Границы</p>
+        <h2>Что входит в гарантию, а что нет</h2>
+        <p>
+          Честный список важнее длинного: если чего-то в гарантии нет, лучше
+          узнать об этом сейчас, а не при обращении.
+        </p>
+      </div>
+
+      <div class="cols">
+        <div class="col col--yes">
+          <p class="col__title">
+            <span class="col__mark" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4.5 10.5 8.5 14.5 15.5 6" />
+              </svg>
+            </span>
+            Входит
+          </p>
+          <ul>
+            {covered.map((item) => <li>{item}</li>)}
+          </ul>
+          <p class="col__foot">
+            Обращение — по номеру талона, который остаётся у вас после ремонта:
+            там же указан срок по каждой выполненной работе.
+          </p>
+        </div>
+
+        <div class="col col--no">
+          <p class="col__title">
+            <span class="col__mark" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 6l8 8M14 6l-8 8" />
+              </svg>
+            </span>
+            Не входит
+          </p>
+          <ul>
+            {notCovered.map((item) => <li>{item}</li>)}
+          </ul>
+          <p class="col__foot col__foot--no">
+            Такие поломки мы тоже берёмся чинить — но как обычный платный
+            ремонт, со своей гарантией на выполненные работы.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Steps
+    eyebrow="Порядок"
+    heading="Как обратиться по гарантии"
+    items={[
+      {
+        when: 'сразу',
+        title: 'Позвоните и назовите номер талона',
+        text: `Талон остаётся у вас после ремонта: в нём перечислены выполненные работы, установленные детали и срок по каждой позиции. По номеру мы находим заявку и видим, что делал мастер.`,
+      },
+      {
+        when: 'в тот же день',
+        title: 'Согласуем время выезда',
+        text: `Гарантийный случай идёт в приоритете перед новыми заявками и не ждёт в общей очереди. Время подбираем под вас, как и при обычном обращении.`,
+      },
+      {
+        when: 'бесплатно',
+        title: 'Устраняем повторную поломку',
+        text: `Повторный выезд ${CITY.inPrep}, работа и заменённая по гарантии деталь не оплачиваются. После проверки техники выдаём новый талон на выполненные работы.`,
+      },
+    ]}
+  />
+
+  <LeadForm
+    heading="Обратиться по гарантии"
+    text="Назовите номер талона — приедем в приоритетном порядке и устраним бесплатно."
+  />
+
+  <Faq items={faqItems} heading="Вопросы о гарантии" eyebrow="Частые вопросы" />
+</BaseLayout>
+
+<style>
+
+  .terms-card {
+    padding: var(--sp-6);
+    background: var(--bg-sunken);
+    border-radius: var(--r-xl);
+  }
+
+  @media (min-width: 620px) {
+    .terms-card {
+      padding: var(--sp-7);
+    }
+  }
+
+  .cols {
+    display: grid;
+    gap: var(--sp-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  }
+
+  .col {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: var(--sp-6);
+    border-radius: var(--r-xl);
+  }
+
+  .col__foot {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--pos-200);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--pos-700);
+  }
+
+  .col__foot--no {
+    border-top-color: var(--line);
+    color: var(--text-muted);
+  }
+
+  .col--yes {
+    background: var(--pos-50);
+  }
+
+  .col--no {
+    background: var(--bg-raised);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .col__title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+  }
+
+  .col__mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .col__mark svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .col--yes .col__mark {
+    background: var(--bg-raised);
+    color: var(--pos-700);
+  }
+
+  .col--no .col__mark {
+    background: var(--bg-sunken);
+    color: var(--text-muted);
+  }
+
+  .col ul {
+    align-content: start;
+    margin-top: var(--sp-5);
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .col li {
+    position: relative;
+    padding-left: 1.1rem;
+    color: var(--text);
+  }
+
+  .col li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.4;
+  }
+</style>

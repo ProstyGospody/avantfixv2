@@ -1,0 +1,89 @@
+---
+
+import { CITY } from '@/lib/city';
+import { SOCIAL } from '@/config/site';
+import { telHref } from '@/lib/format';
+
+interface Props {
+  formHref?: string;
+}
+
+const { formHref = '#zayavka' } = Astro.props;
+const phone = CITY.phoneMobile || CITY.phoneCity;
+const wa = SOCIAL.whatsapp ? `https://wa.me/${SOCIAL.whatsapp}` : null;
+---
+
+<div class="sticky" role="group" aria-label="Быстрая связь">
+  <a class="sticky__btn" href={telHref(phone)} data-goal="phone-sticky">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6.6 3.5h3l1.5 3.7-1.9 1.1a11 11 0 0 0 4.5 4.5l1.1-1.9 3.7 1.5v3a1.6 1.6 0 0 1-1.7 1.6A14.5 14.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.6 3.5Z" />
+    </svg>
+    Позвонить
+  </a>
+
+  {
+    wa && (
+      <a class="sticky__btn" href={wa} rel="nofollow noopener" target="_blank" data-goal="whatsapp-sticky">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.5 11.7a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.4-4.5a8.4 8.4 0 1 1 15.6-4.3Z" />
+        </svg>
+        WhatsApp
+      </a>
+    )
+  }
+
+  <a class="sticky__btn sticky__btn--primary" href={formHref} data-goal="form-sticky">
+    Вызвать мастера
+  </a>
+</div>
+
+<style>
+  .sticky {
+    view-transition-name: sticky-actions;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: none;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    padding-bottom: calc(var(--sp-2) + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 900px) {
+    .sticky {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+    }
+  }
+
+  .sticky__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    min-height: 46px;
+    border-radius: var(--r);
+    background: color-mix(in srgb, var(--text-strong) 6%, transparent);
+    color: var(--text-strong);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .sticky__btn svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .sticky__btn--primary {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+</style>

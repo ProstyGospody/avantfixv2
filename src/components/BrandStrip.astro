@@ -1,0 +1,169 @@
+---
+import BrandLogo from '@/components/BrandLogo.astro';
+import type { Appliance } from '@/data/appliances';
+import { APPLIANCES, brandSlug } from '@/data/appliances';
+import { logoBox } from '@/lib/brandLogos';
+
+interface Props {
+  appliance?: Appliance;
+  heading?: string;
+  sunken?: boolean;
+
+  linked?: boolean;
+
+  limit?: number;
+
+  dense?: boolean;
+}
+
+const { appliance, heading, sunken = false, linked = true, limit, dense = false } = Astro.props;
+
+const all = appliance ? appliance.brands : [...new Set(APPLIANCES.flatMap((a) => a.brands))];
+
+const shown = limit ? all.slice(0, limit) : all;
+const even = shown.length % 2 === 0 ? shown : shown.slice(0, -1);
+
+const brands = even.map((b) => ({
+  name: b,
+  logo: logoBox(brandSlug(b)).usable,
+}));
+
+const hrefFor = (b: string) => (appliance && linked ? `/${appliance.slug}/${brandSlug(b)}/` : null);
+
+const title =
+  heading ??
+  (appliance
+    ? `Ремонтируем ${appliance.genitivePlural} этих марок`
+    : 'Работаем с техникой всех распространённых марок');
+---
+
+<section
+  class:list={['section', 'section--tight', sunken && 'section--sunken']}
+  aria-labelledby="brands-heading"
+>
+  <div class="container">
+    <p class="brands__title" id="brands-heading">{title}</p>
+
+    <ul class:list={['brands', 'reveal', dense && 'brands--dense']}>
+      {
+        brands.map(({ name, logo }) => {
+          const href = hrefFor(name);
+          const inner = logo ? <BrandLogo brand={name} /> : <span class="brands__word">{name}</span>;
+          return (
+            <li class="brands__cell">
+              {href ? (
+                <a class="brands__tile" href={href} title={`Ремонт ${name}`}>
+                  {inner}
+                </a>
+              ) : (
+                <span class="brands__tile">{inner}</span>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+
+  </div>
+</section>
+
+<style>
+  .brands__title {
+    margin-bottom: var(--sp-6);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-faint);
+    text-align: center;
+  }
+
+  .brands {
+    --tile-gap: var(--sp-3);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--tile-gap);
+    padding: 0;
+    list-style: none;
+  }
+
+  .brands--dense {
+    --tile-gap: var(--sp-2);
+  }
+
+  .brands__cell {
+    flex: 0 0 calc((100% - var(--tile-gap) - 1px) / 2);
+    min-width: 0;
+  }
+
+  .brands--dense .brands__cell {
+    flex-basis: calc((100% - 2 * var(--tile-gap) - 1px) / 3);
+  }
+
+  @media (min-width: 620px) {
+    .brands__cell,
+    .brands--dense .brands__cell {
+      flex-basis: calc((100% - 3 * var(--tile-gap) - 1px) / 4);
+    }
+  }
+
+  @media (min-width: 900px) {
+    .brands__cell,
+    .brands--dense .brands__cell {
+      flex-basis: calc((100% - 5 * var(--tile-gap) - 1px) / 6);
+    }
+  }
+
+  .brands__tile {
+    display: grid;
+    place-items: center;
+    min-height: 96px;
+    padding: var(--sp-4) var(--sp-3);
+    background: var(--tile-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+    text-decoration: none;
+    transition:
+      background-color 0.16s var(--ease),
+      box-shadow 0.16s var(--ease);
+  }
+
+  .brands--dense .brands__tile {
+    min-height: 64px;
+    padding: var(--sp-3);
+  }
+
+  .section--sunken .brands__tile {
+    --tile-bg: var(--bg-raised);
+  }
+
+  a.brands__tile:hover {
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-2);
+    text-decoration: none;
+  }
+
+  .section--sunken a.brands__tile:hover {
+    background: var(--bg-raised);
+  }
+
+  .brands__word {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-muted);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .brands--dense .brands__word {
+    font-size: var(--fs-base);
+  }
+
+  .brands--dense :global(.brand-logo) {
+    max-height: 34px;
+  }
+
+  a.brands__tile:hover .brands__word {
+    color: var(--text-strong);
+  }
+</style>

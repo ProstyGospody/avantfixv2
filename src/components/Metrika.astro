@@ -1,0 +1,63 @@
+---
+
+const id = import.meta.env.PUBLIC_METRIKA_ID;
+---
+
+{
+  id && (
+    <>
+      <script define:vars={{ id }}>
+        (function () {
+          window.__ymId = id;
+          var loaded = false;
+          function load() {
+            if (loaded) return;
+            loaded = true;
+            (function (m, e, t, r, i, k, a) {
+              m[i] =
+                m[i] ||
+                function () {
+                  (m[i].a = m[i].a || []).push(arguments);
+                };
+              m[i].l = 1 * new Date();
+              (k = e.createElement(t)), (a = e.getElementsByTagName(t)[0]);
+              k.async = 1;
+              k.src = r;
+              a.parentNode.insertBefore(k, a);
+            })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+
+            window.ym(id, 'init', {
+              defer: true,
+              clickmap: true,
+              trackLinks: true,
+              accurateTrackBounce: true,
+              webvisor: true,
+            });
+          }
+
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(load, { timeout: 2500 });
+          } else {
+            setTimeout(load, 1500);
+          }
+
+          ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
+            window.addEventListener(ev, load, { once: true, passive: true });
+          });
+        })();
+      </script>
+
+      <noscript>
+        <div>
+          <img
+            src={`https://mc.yandex.ru/watch/${id}`}
+            style="position:absolute;left:-9999px"
+            alt=""
+            width="1"
+            height="1"
+          />
+        </div>
+      </noscript>
+    </>
+  )
+}

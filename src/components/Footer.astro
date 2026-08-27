@@ -1,0 +1,260 @@
+---
+import Logo from '@/components/Logo.astro';
+import { APPLIANCES } from '@/data/appliances';
+import { CITY, OTHER_CITIES, crossCityUrl } from '@/lib/city';
+import { BRAND, DOMAIN, WARRANTY } from '@/config/site';
+import { telHref } from '@/lib/format';
+
+const year = new Date().getFullYear();
+const years = year > BRAND.foundedYear ? `${BRAND.foundedYear}—${year}` : String(year);
+const phones = [CITY.phoneCity, CITY.phoneMobile].filter(Boolean);
+const hasRequisites = Boolean(BRAND.inn);
+
+const site = `https://${DOMAIN}`;
+---
+
+<footer class="ftr">
+  <div class="container">
+    <div class="ftr__grid">
+      <div class="ftr__brand">
+        <Logo size={26} />
+        <p class="ftr__about">
+          {BRAND.slogan} {CITY.inPrep}. Выезд в день обращения, диагностика бесплатно
+          при согласии на ремонт. {WARRANTY.text}.
+        </p>
+
+        <div class="ftr__contacts">
+          {phones.map((p) => (
+            <a href={telHref(p)} class="ftr__phone" data-goal="phone-footer">{p}</a>
+          ))}
+          <a href={`mailto:${BRAND.email}`} class="ftr__mail">{BRAND.email}</a>
+          <p class="small muted">{CITY.workHours.days}, {CITY.workHours.open}–{CITY.workHours.close}</p>
+        </div>
+      </div>
+
+      <nav class="ftr__col" aria-labelledby="ftr-services">
+        <p class="ftr__head" id="ftr-services">Что ремонтируем</p>
+        <ul>
+          {APPLIANCES.map((a) => (
+            <li><a href={`/${a.slug}/`}>{a.short}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <nav class="ftr__col" aria-labelledby="ftr-info">
+        <p class="ftr__head" id="ftr-info">Информация</p>
+        <ul>
+          <li><a href="/o-kompanii/">О компании</a></li>
+          <li><a href="/garantiya/">Гарантия</a></li>
+          <li><a href="/otzyvy/">Отзывы</a></li>
+          <li><a href="/kontakty/">Контакты</a></li>
+        </ul>
+      </nav>
+
+      <nav class="ftr__col" aria-labelledby="ftr-geo">
+        <p class="ftr__head" id="ftr-geo">Города</p>
+        <ul>
+          <li><span class="ftr__current">{CITY.name}</span></li>
+          {OTHER_CITIES.map((c) => (
+            <li><a href={crossCityUrl(c.slug)}>{c.name}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="ftr__bottom">
+      <p class="small muted">
+        © {years} {BRAND.name}.
+        {hasRequisites ? `${BRAND.legalName ? ` ${BRAND.legalName},` : ''} ИНН ${BRAND.inn}${BRAND.ogrn ? `, ОГРНИП ${BRAND.ogrn}` : ''}.` : ''}
+        Информация на сайте не является публичной офертой.
+      </p>
+      <p class="ftr__legal small">
+        <a href="/politika-konfidencialnosti/">Политика конфиденциальности</a>
+        <a href="/soglasie/">Согласие на обработку данных</a>
+      </p>
+
+      <a
+        class="ftr__iks"
+        href={`https://webmaster.yandex.ru/siteinfo/?site=${site}`}
+        target="_blank"
+        rel="noopener nofollow"
+      >
+        <img
+          src={`https://yandex.ru/cycounter?${site}&theme=light&lang=ru`}
+          width="88"
+          height="31"
+          loading="lazy"
+          decoding="async"
+          alt={`Индекс качества сайта ${DOMAIN} в Яндексе`}
+        />
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    padding-top: var(--section-y);
+
+    padding-bottom: calc(var(--sp-7) + 62px);
+    background: var(--bg-sunken);
+  }
+
+  @media (min-width: 901px) {
+    .ftr {
+      padding-bottom: var(--sp-7);
+    }
+  }
+
+  .ftr__grid {
+    display: grid;
+    gap: var(--sp-7);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 720px) {
+    .ftr__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .ftr__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .ftr__grid {
+      grid-template-columns: 1.6fr repeat(3, 1fr);
+      gap: var(--sp-8);
+    }
+
+    .ftr__brand {
+      grid-column: auto;
+    }
+  }
+
+  .ftr__about {
+    margin-top: var(--sp-4);
+    max-width: 38ch;
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+  }
+
+  .ftr__contacts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-1);
+    margin-top: var(--sp-5);
+  }
+
+  .ftr__phone {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ftr__phone:hover {
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+
+  .ftr__mail {
+    display: inline-block;
+    margin-top: var(--sp-1);
+    padding-block: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .ftr__mail:hover {
+    color: var(--accent-text);
+  }
+
+  .ftr__head {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .ftr__col ul {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ftr__col a {
+    display: block;
+    padding-block: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .ftr__col a:hover {
+    color: var(--text-strong);
+  }
+
+  .ftr__current {
+    display: block;
+    padding-block: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-strong);
+    font-weight: 500;
+  }
+
+  .ftr__iks {
+    display: block;
+    order: 1;
+    margin-left: auto;
+    line-height: 0;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+  }
+
+  .ftr__iks img {
+    display: block;
+  }
+
+  .ftr__bottom {
+    display: flex;
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--sp-3) var(--sp-6);
+    margin-top: var(--sp-5);
+  }
+
+  .ftr__bottom > .small {
+    max-width: 62ch;
+  }
+
+  .ftr__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-5);
+  }
+
+  .ftr__legal a {
+    display: inline-block;
+    padding-block: var(--sp-1);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .ftr__legal a:hover {
+    color: var(--text-strong);
+  }
+</style>

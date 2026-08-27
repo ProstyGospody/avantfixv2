@@ -1,0 +1,220 @@
+---
+import { typo } from '@/lib/format';
+
+interface Item {
+  href: string;
+  title: string;
+
+  price?: string;
+  note?: string;
+}
+
+interface Props {
+  heading: string;
+  eyebrow?: string;
+  intro?: string;
+  items: Item[];
+  sunken?: boolean;
+
+  compact?: boolean;
+
+  fallback?: string;
+}
+
+const { heading, eyebrow, intro, items, sunken = false, compact = false, fallback } = Astro.props;
+const id = heading.toLowerCase().replace(/[^a-zа-я0-9]+/gi, '-').replace(/^-|-$/g, '');
+---
+
+<section class:list={['section', sunken && 'section--sunken']} aria-labelledby={id}>
+  <div class="container">
+    <div class="section-head">
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+      <h2 id={id}>{typo(heading)}</h2>
+      {intro && <p>{intro}</p>}
+    </div>
+
+    {
+      compact ? (
+        <ul class="chips">
+          {items.map((item) => (
+            <li>
+              <a href={item.href}>{item.title}</a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul class="rows">
+          {items.map((item) => (
+            <li>
+              <a href={item.href}>
+                <span class="rows__title">{item.title}</span>
+                {item.note && <span class="rows__note">{item.note}</span>}
+                {item.price && <span class="rows__price">{item.price}</span>}
+                <span class="rows__arrow" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 10h11M11 6l4 4-4 4" />
+                  </svg>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      fallback && (
+        <p class="fallback">
+          {fallback}{' '}
+          <a class="fallback__link" href="#zayavka-hero">Описать свой случай →</a>
+        </p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+
+  .rows {
+    display: grid;
+    gap: var(--sp-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 760px) {
+    .rows {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .rows a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-4);
+    height: 100%;
+    padding: var(--sp-5);
+    background: var(--tile-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+    color: var(--text-strong);
+    text-decoration: none;
+    transition:
+      background-color 0.16s var(--ease),
+      box-shadow 0.16s var(--ease);
+  }
+
+  .section--sunken .rows a {
+    --tile-bg: var(--bg-raised);
+  }
+
+  .rows a:hover {
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-2);
+    text-decoration: none;
+  }
+
+  .rows__title {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: var(--lh-snug);
+  }
+
+  .rows__note {
+    grid-column: 1;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rows__price {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: center;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .rows__arrow {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+    transition: transform 0.16s var(--ease-out), background-color 0.16s var(--ease);
+  }
+
+  .section--sunken .rows__arrow {
+    background: var(--bg-sunken);
+  }
+
+  .rows__arrow svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .rows a:hover .rows__arrow {
+    background: var(--accent);
+    color: var(--on-accent);
+    transform: translateX(2px);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .chips a {
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    padding-inline: var(--sp-5);
+    background: var(--bg-sunken);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-base);
+    font-weight: 500;
+    color: var(--text-strong);
+    text-decoration: none;
+    transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+  }
+
+  .section--sunken .chips a {
+    background: var(--bg-raised);
+  }
+
+  .chips a:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+    text-decoration: none;
+  }
+
+  .fallback {
+    max-width: 78ch;
+    margin-top: var(--sp-6);
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+  }
+
+  .fallback__link {
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  @media (max-width: 560px) {
+    .rows a {
+      padding: var(--sp-4);
+    }
+  }
+</style>

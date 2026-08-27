@@ -1,0 +1,116 @@
+:root {
+  --n-0: #ffffff;
+  --n-25: #fafbfc;
+  --n-50: #f4f6f9;
+  --n-100: #ebeef2;
+  --n-150: #e1e5eb;
+  --n-200: #d3d9e0;
+  --n-300: #b6bec9;
+  --n-400: #8e97a4;
+  --n-500: #666f7d;
+  --n-550: #5a636f;
+  --n-600: #4b535f;
+  --n-700: #343b45;
+  --n-800: #1f242c;
+  --n-900: #12161b;
+
+  --a-50: #eef3ff;
+  --a-100: #dbe5ff;
+  --a-200: #b9ccff;
+  --a-400: #4d7bf3;
+  --a-500: #2560f0;
+  --a-600: #1a4cd0;
+  --a-700: #1540ad;
+
+  --pos-50: #e7f6ef;
+
+  --pos-200: #bfe0d0;
+  --pos-600: #0e8f63;
+
+  --pos-700: #0a6e4c;
+
+  --warn-50: #fef4e6;
+
+  --warn-400: #f0b429;
+  --warn-600: #b45309;
+
+  --danger: #c53030;
+  --danger-50: #fdeeee;
+
+  --bg: var(--n-0);
+
+  --bg-sunken: var(--n-50);
+  --bg-raised: var(--n-0);
+  --bg-inverse: var(--n-900);
+
+  --text: var(--n-600);
+  --text-strong: var(--n-900);
+  --text-muted: var(--n-550);
+  --text-faint: var(--n-500);
+  --text-inverse: var(--n-0);
+
+  --line: var(--n-100);
+  --line-strong: var(--n-150);
+
+  --accent: var(--a-500);
+  --accent-hover: var(--a-600);
+  --accent-soft: var(--a-50);
+  --accent-text: var(--a-600);
+  --on-accent: var(--n-0);
+
+  --font-display: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
+  --font-text: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.1875rem;
+  --fs-xl: clamp(1.375rem, 0.6vw + 1.2rem, 1.5rem);
+  --fs-2xl: clamp(1.75rem, 1.8vw + 1.3rem, 2.5rem);
+  --fs-3xl: clamp(2.25rem, 3.4vw + 1.4rem, 3.75rem);
+
+  --lh-display: 1.04;
+  --lh-tight: 1.15;
+  --lh-snug: 1.4;
+  --lh-base: 1.62;
+
+  --ls-display: -0.035em;
+  --ls-heading: -0.022em;
+  --ls-body: -0.006em;
+  --ls-caps: 0.06em;
+
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+  --sp-9: 6rem;
+
+  --section-y: clamp(2.75rem, 4.4vw, 5rem);
+
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 18px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(18, 22, 27, 0.04), 0 2px 6px rgba(18, 22, 27, 0.04);
+  --shadow-2: 0 2px 4px rgba(18, 22, 27, 0.04), 0 10px 24px rgba(18, 22, 27, 0.06);
+  --shadow-3: 0 4px 8px rgba(18, 22, 27, 0.05), 0 24px 48px rgba(18, 22, 27, 0.09);
+  --shadow-accent: 0 4px 14px rgba(37, 96, 240, 0.28);
+
+  --container: 1440px;
+  --container-narrow: 720px;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+
+  --sticky-h: 62px;
+
+  --header-h: 72px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -1,0 +1,152 @@
+---
+import { APPLIANCES } from '@/data/appliances';
+import { plural, typo } from '@/lib/format';
+import { CITY } from '@/lib/city';
+import { HOME_COPY } from '@/data/copy';
+
+interface Props {
+  eyebrow?: string;
+  heading?: string;
+  sunken?: boolean;
+
+  figures?: boolean;
+}
+
+const {
+  eyebrow = 'О сервисе',
+  heading = 'Как устроен наш сервис',
+  sunken = false,
+  figures = true,
+} = Astro.props;
+
+const paragraphs = HOME_COPY[CITY.slug].about;
+const [lead, ...rest] = paragraphs;
+
+const brands = new Set(APPLIANCES.flatMap((a) => a.brands)).size;
+const faults = APPLIANCES.reduce((n, a) => n + a.faults.length, 0);
+const prices = APPLIANCES.reduce((n, a) => n + a.priceList.length, 0);
+
+const scope = [
+  {
+    value: String(APPLIANCES.length),
+    label: `${plural(APPLIANCES.length, ['вид', 'вида', 'видов'])} крупной техники`,
+  },
+  { value: String(brands), label: `${plural(brands, ['марка', 'марки', 'марок'])} в работе` },
+  {
+    value: String(faults),
+    label: plural(faults, [
+      'типовая неисправность описана',
+      'типовые неисправности описаны',
+      'типовых неисправностей описано',
+    ]),
+  },
+  {
+    value: String(prices),
+    label: `${plural(prices, ['позиция', 'позиции', 'позиций'])} в прайсе с ценой`,
+  },
+];
+---
+
+<section class:list={['section', sunken && 'section--sunken']} aria-labelledby="about-heading">
+  <div class:list={['container', 'about', !figures && 'about--plain']}>
+
+    <div class="about__side">
+      <div class="section-head">
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 id="about-heading">{typo(heading)}</h2>
+      </div>
+
+      {figures && (
+        <dl class="scope">
+          {scope.map((f) => (
+            <div>
+              <dt class="scope__value">{f.value}</dt>
+              <dd class="scope__label">{f.label}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+
+    <div class="about__text">
+      <p class="statement__lead">{lead}</p>
+      {rest.map((t) => (
+        <p>{t}</p>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    display: grid;
+    gap: var(--sp-6);
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .about {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: var(--sp-9);
+    }
+  }
+
+  .about__side .section-head {
+    margin-bottom: 0;
+  }
+
+  .about__text {
+    display: grid;
+    gap: var(--sp-5);
+  }
+
+  @media (min-width: 900px) {
+    .about--plain {
+      grid-template-columns: 1fr;
+      gap: var(--sp-6);
+    }
+
+    .about--plain .about__text {
+      columns: 2;
+      column-gap: var(--sp-9);
+      display: block;
+    }
+
+    .about--plain .about__text > p {
+      break-inside: avoid;
+      margin-bottom: var(--sp-5);
+    }
+  }
+
+  .about__text p:not(.statement__lead) {
+    max-width: 58ch;
+    color: var(--text-muted);
+  }
+
+  .scope {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-6) var(--sp-5);
+    margin: var(--sp-7) 0 0;
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .scope__value {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .scope__label {
+    margin: var(--sp-2) 0 0;
+    max-width: 22ch;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+</style>

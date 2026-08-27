@@ -1,0 +1,170 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import PriceCalculator from '@/components/PriceCalculator.astro';
+import PriceTable from '@/components/PriceTable.astro';
+import Benefits from '@/components/Benefits.astro';
+import Faq from '@/components/Faq.astro';
+import LeadForm from '@/components/LeadForm.astro';
+
+import { APPLIANCES, type Appliance } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { PRICE_COPY } from '@/data/copy';
+import { priceFaq } from '@/data/faq';
+import { priceRange } from '@/lib/pricing';
+import { price, telHref } from '@/lib/format';
+import { buildTitle, absoluteUrl } from '@/lib/seo';
+import { breadcrumbs, faq as faqSchema, service } from '@/lib/schema';
+import { WARRANTY } from '@/config/site';
+
+export function getStaticPaths() {
+  return APPLIANCES.map((appliance) => ({
+    params: { appliance: appliance.slug },
+    props: { appliance },
+  }));
+}
+
+interface Props {
+  appliance: Appliance;
+}
+
+const { appliance } = Astro.props;
+const range = priceRange(appliance, CITY);
+const hubHref = `/${appliance.slug}/`;
+const hubName = `Ремонт ${appliance.genitivePlural}`;
+const phone = CITY.phoneCity || CITY.phoneMobile;
+
+const h1 = `Цены на ремонт ${appliance.genitivePlural} ${CITY.inPrep}`;
+const title = buildTitle(h1, `прайс-лист ${new Date().getFullYear()}`);
+const description =
+  `Актуальный прайс на ремонт ${appliance.genitivePlural} ${CITY.inPrep}: ` +
+  `работы от ${price(range.min)} до ${price(range.max)}, диагностика бесплатно, ` +
+  `гарантия до ${WARRANTY.workMonths} мес. Цена фиксируется до начала ремонта.`;
+
+const faqItems = priceFaq(CITY);
+
+const schema = [
+  service(appliance, CITY),
+  breadcrumbs([
+    { name: 'Главная', url: absoluteUrl('/', CITY) },
+    { name: hubName, url: absoluteUrl(hubHref, CITY) },
+    { name: 'Цены' },
+  ]),
+  faqSchema(faqItems),
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <PageHero
+    eyebrow="Прайс-лист"
+    h1={h1}
+    lead={`Работы стоят от ${price(range.min)} до ${price(range.max)} в зависимости от узла. Выезд и диагностика не оплачиваются, если вы соглашаетесь на ремонт.`}
+    crumbs={[{ name: hubName, href: hubHref }, { name: 'Цены' }]}
+    facts={[
+      { value: '0 ₽', label: 'выезд и диагностика' },
+      { value: `от ${price(range.min)}`, label: 'работа мастера' },
+      { value: `${WARRANTY.workMonths} мес.`, label: 'гарантия' },
+    ]}
+    applianceSlug={appliance.slug}
+    mediaAlt={hubName}
+    form
+    formSubject={`${appliance.short} — цена`}
+  >
+    <Fragment slot="actions">
+      <a class="btn btn--soft" href={hubHref}>Всё об услуге</a>
+    </Fragment>
+  </PageHero>
+
+  <PriceCalculator preselect={appliance.slug} />
+
+  <PriceTable appliance={appliance} eyebrow="Полный прайс" heading="Стоимость работ" sunken />
+
+  <section class="section">
+    <div class="container">
+
+      <div class="section-head">
+        <p class="eyebrow">Как считаем</p>
+        <h2>Как формируется стоимость</h2>
+      </div>
+
+      <div class="howprice">
+        {PRICE_COPY[CITY.slug].map((item, i) => (
+          <article class="howprice__card">
+            <span class="howprice__icon" aria-hidden="true">
+              {i === 0 ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3.5" y="3.5" width="17" height="17" rx="3" />
+                  <path d="M8 9h8M8 13h5M8 17h3" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" />
+                  <circle cx="12" cy="10" r="2.6" />
+                </svg>
+              )}
+            </span>
+            <h3 class="howprice__title">{item.title}</h3>
+            <p class="howprice__text">{item.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Benefits sunken />
+
+  <LeadForm
+    heading="Узнать точную цену"
+    text="Опишите проблему по телефону — назовём вилку по вашей модели ещё до выезда."
+    subject={`${appliance.short} — цена`}
+  />
+
+  <Faq items={faqItems} heading="Вопросы о цене" eyebrow="Оплата и гарантия" />
+</BaseLayout>
+
+<style>
+  .howprice {
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  @media (min-width: 860px) {
+    .howprice {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .howprice__card {
+    display: grid;
+    align-content: start;
+    padding: var(--sp-6);
+    background: var(--bg-sunken);
+    border-radius: var(--r-xl);
+  }
+
+  .howprice__icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+  }
+
+  .howprice__icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .howprice__title {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-lg);
+  }
+
+  .howprice__text {
+    margin-top: var(--sp-3);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+</style>

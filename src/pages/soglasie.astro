@@ -1,0 +1,174 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { CITY, ORIGIN } from '@/lib/city';
+import { BRAND } from '@/config/site';
+import { absoluteUrl, buildTitle } from '@/lib/seo';
+import { breadcrumbs } from '@/lib/schema';
+
+const operator = BRAND.legalName || `${BRAND.name} (реквизиты уточняются)`;
+const host = ORIGIN.replace('https://', '');
+
+const title = buildTitle('Согласие на обработку персональных данных');
+const description = `Текст согласия на обработку персональных данных, которое пользователь даёт при отправке заявки на сайте ${host}.`;
+
+const sections = [
+  { id: 'dannye', title: 'Перечень персональных данных' },
+  { id: 'deystviya', title: 'Перечень действий с данными' },
+  { id: 'celi', title: 'Цели обработки' },
+  { id: 'srok', title: 'Срок действия согласия' },
+  { id: 'otzyv', title: 'Порядок отзыва' },
+];
+
+const schema = [
+  breadcrumbs([
+    { name: 'Главная', url: absoluteUrl('/', CITY) },
+    { name: 'Согласие на обработку данных' },
+  ]),
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema} hasForm={false}>
+  <PageHero
+    eyebrow="Правовая информация"
+    h1="Согласие на обработку персональных данных"
+    lead={`Текст согласия, которое вы даёте, отмечая чекбокс при отправке формы на сайте ${host}.`}
+    crumbs={[{ name: 'Согласие на обработку данных' }]}
+    plain
+  />
+
+  <section class="section section--tight">
+    <div class="container legal">
+      <nav class="toc" aria-label="Содержание документа">
+        <p class="toc__title">Содержание</p>
+        <ol>
+          {sections.map((s) => (
+            <li><a href={`#${s.id}`}>{s.title}</a></li>
+          ))}
+        </ol>
+      </nav>
+
+      <article class="prose">
+        <p>
+          Отмечая чекбокс согласия и отправляя форму на сайте {host}, я, субъект
+          персональных данных, свободно, своей волей и в своём интересе даю согласие
+          {' '}{operator} (далее — Оператор) на обработку моих персональных данных.
+        </p>
+
+        <h2 id="dannye">Перечень персональных данных</h2>
+        <ul>
+          <li>фамилия и имя (или имя, указанное в форме);</li>
+          <li>номер контактного телефона;</li>
+          <li>адрес электронной почты, если он указан;</li>
+          <li>адрес места оказания услуги, сообщённый при оформлении заявки.</li>
+        </ul>
+
+        <h2 id="deystviya">Перечень действий с данными</h2>
+        <p>
+          Сбор, запись, систематизация, накопление, хранение, уточнение (обновление,
+          изменение), извлечение, использование, блокирование, удаление и уничтожение
+          персональных данных — с использованием средств автоматизации и без них.
+        </p>
+
+        <h2 id="celi">Цели обработки</h2>
+        <ul>
+          <li>обработка заявки на ремонт бытовой техники и обратная связь по ней;</li>
+          <li>согласование времени и адреса выезда мастера;</li>
+          <li>исполнение обязательств по оказанию услуг и гарантийному обслуживанию;</li>
+          <li>ведение учёта обращений и качества обслуживания.</li>
+        </ul>
+
+        <h2 id="srok">Срок действия согласия</h2>
+        <p>
+          Согласие действует со дня его предоставления и до дня отзыва в письменной
+          форме, но не дольше трёх лет с момента последнего обращения.
+        </p>
+
+        <h2 id="otzyv">Порядок отзыва</h2>
+        <p>
+          Согласие может быть отозвано в любой момент направлением обращения на адрес
+          {' '}<a href={`mailto:${BRAND.email}`}>{BRAND.email}</a> либо по телефону
+          {' '}{CITY.phoneCity || CITY.phoneMobile}. После получения отзыва Оператор
+          прекращает обработку и уничтожает данные в срок, не превышающий 30 дней,
+          за исключением случаев, когда их хранение прямо предусмотрено законом.
+        </p>
+      </article>
+
+      <p class="related">
+        Подробнее о том, как мы обращаемся с данными, —
+        {' '}<a href="/politika-konfidencialnosti/" class="link-arrow">в политике конфиденциальности</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal {
+    display: grid;
+    gap: var(--sp-6);
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .legal {
+      grid-template-columns: minmax(220px, 1fr) minmax(0, 2.2fr);
+      gap: var(--sp-8);
+    }
+
+    .toc {
+      position: sticky;
+      top: calc(var(--header-h) + var(--sp-5));
+    }
+  }
+
+  .toc__title {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: toc;
+  }
+
+  .toc li {
+    counter-increment: toc;
+  }
+
+  .toc a {
+    display: block;
+    padding: var(--sp-2) 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .toc a::before {
+    content: counter(toc) '. ';
+    color: var(--text-faint);
+  }
+
+  .toc a:hover {
+    color: var(--accent-text);
+  }
+
+  .prose h2 {
+    scroll-margin-top: calc(var(--header-h) + var(--sp-5));
+    font-size: var(--fs-lg);
+  }
+
+  .related {
+    grid-column: 1 / -1;
+    margin-top: var(--sp-8);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+  }
+</style>

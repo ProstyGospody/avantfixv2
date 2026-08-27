@@ -1,0 +1,388 @@
+---
+
+import { CITY } from '@/lib/city';
+import { plural, telHref } from '@/lib/format';
+import { CITY_MAPS } from '@/data/cityMaps';
+
+interface Props {
+  subject?: string;
+  sunken?: boolean;
+}
+
+const { subject = 'бытовую технику', sunken = false } = Astro.props;
+
+const map = CITY_MAPS[CITY.slug];
+const phone = CITY.phoneCity || CITY.phoneMobile;
+
+const kmFrom = (lat: number, lon: number) => {
+  const dx = (lon - map.center.lon) * 111 * Math.cos((map.center.lat * Math.PI) / 180);
+  const dy = (lat - map.center.lat) * 111;
+  return Math.hypot(dx, dy);
+};
+
+const onMap = new Map(map.points.map((pt) => [pt.name, pt]));
+
+const districts = CITY.districts.map((name) => ({ name }));
+
+const nearby = CITY.nearby
+  .map((name) => {
+    const pt = onMap.get(name);
+    return { name, km: pt ? kmFrom(pt.lat, pt.lon) : null };
+  })
+  .sort((a, b) => (a.km ?? 1e9) - (b.km ?? 1e9));
+
+const NEAR_LIMIT = 10;
+const near = nearby.filter((n) => n.km !== null && n.km <= NEAR_LIMIT);
+const far = nearby.filter((n) => n.km === null || n.km > NEAR_LIMIT);
+
+const zones = [
+  {
+    title: CITY.name,
+    scope: `${CITY.districts.length} ${plural(CITY.districts.length, ['район', 'района', 'районов'])}`,
+    cost: 'выезд бесплатный',
+    time: `в среднем ${CITY.arrivalMinutes} мин`,
+    tone: 'city',
+  },
+  {
+    title: `Пригород до ${NEAR_LIMIT} км`,
+    scope: `${near.length} ${plural(near.length, ['посёлок', 'посёлка', 'посёлков'])}`,
+    cost: 'выезд бесплатный',
+    time: `в среднем ${CITY.arrivalMinutes + 15} мин`,
+    tone: 'near',
+  },
+  {
+    title: `Дальше ${NEAR_LIMIT} км`,
+    scope: far.length
+      ? `${far.length} ${plural(far.length, ['населённый пункт', 'населённых пункта', 'населённых пунктов'])}`
+      : 'по области',
+    cost: 'выезд обсудим при заявке',
+    time: 'время скажем по телефону',
+    tone: 'far',
+  },
+];
+---
+
+<section class:list={['section', sunken && 'section--sunken']} aria-labelledby="geo-heading">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">География</p>
+      <h2 id="geo-heading">Куда выезжаем {CITY.inPrep}</h2>
+      <p>
+        Ремонтируем {subject} во всех районах {CITY.genitive}. Выезд по городу
+        бесплатный и входит в стоимость ремонта.
+      </p>
+    </div>
+
+    <div class="geo-layout">
+
+      <div class="geo-zones">
+        <p class="geo-zones__head">Зоны выезда</p>
+
+        <ol class="geo-zones__list">
+          {zones.map((z) => (
+            <li class:list={['geo-zone', `geo-zone--${z.tone}`]}>
+              <p class="geo-zone__title">
+                {z.title}
+                <span class="geo-zone__scope">{z.scope}</span>
+              </p>
+              <p class="geo-zone__cost">{z.cost}</p>
+              <p class="geo-zone__time">{z.time}</p>
+            </li>
+          ))}
+        </ol>
+
+        <p class="geo-zones__call">
+          Не нашли свой адрес — позвоните, скажем точно:
+          {' '}<a href={telHref(phone)} data-goal="phone-geo">{phone}</a>
+        </p>
+      </div>
+
+      <div class="geo-side">
+        <label class="visually-hidden" for="geo-find">Найти свой район или посёлок</label>
+        <input
+          class="geo-find__input"
+          id="geo-find"
+          type="search"
+          placeholder="Ваш район или посёлок"
+          autocomplete="off"
+          spellcheck="false"
+        />
+
+        <div data-tier>
+          <p class="geo-tier__head">
+            <span class="geo-tier__name">Районы {CITY.genitive}</span>
+            <span class="geo-tier__note">выезд бесплатный, в среднем {CITY.arrivalMinutes} мин</span>
+          </p>
+
+          <ul class="geo-chips">
+            {districts.map((d) => (
+              <li class="geo-chip" data-find={d.name.toLowerCase()}>{d.name}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div data-tier>
+          <p class="geo-tier__head">
+            <span class="geo-tier__name">Пригород</span>
+            <span class="geo-tier__note">время выезда согласуем при заявке</span>
+          </p>
+
+          <ul class="geo-rows">
+            {nearby.map((n) => (
+              <li class="geo-row" data-find={n.name.toLowerCase()}>
+                <span class="geo-row__name">{n.name}</span>
+                <span class="geo-row__km">{n.km ? `${Math.round(n.km)} км` : 'по договорённости'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p class="geo-none" hidden>
+          Такого адреса в списке нет — позвоните, скажем точно:
+          {' '}<a href={telHref(phone)} data-goal="phone-geo">{phone}</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .geo-layout {
+    display: grid;
+    gap: var(--sp-6);
+    align-items: start;
+  }
+
+  @media (min-width: 1000px) {
+    .geo-layout {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      gap: var(--sp-8);
+    }
+  }
+
+  .geo-zones {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-5);
+    padding: var(--sp-6);
+    background: var(--geo-bg, var(--bg-sunken));
+    border-radius: var(--r-xl);
+  }
+
+  .section--sunken .geo-zones {
+    --geo-bg: var(--bg-raised);
+  }
+
+  .geo-zones__head {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .geo-zones__list {
+    display: grid;
+    gap: var(--sp-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .geo-zone {
+    padding-left: var(--sp-4);
+    border-left: 3px solid var(--zone-line, var(--line-strong));
+  }
+
+  .geo-zone--city {
+    --zone-line: var(--accent);
+  }
+
+  .geo-zone--near {
+    --zone-line: var(--accent-soft);
+  }
+
+  .geo-zone__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-2) var(--sp-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+  }
+
+  .geo-zone__scope {
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    letter-spacing: normal;
+    color: var(--text-faint);
+  }
+
+  .geo-zone__cost {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text);
+  }
+
+  .geo-zone__time {
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+  }
+
+  .geo-zones__call a {
+    white-space: nowrap;
+  }
+
+  .geo-zones__call {
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .geo-side {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-5);
+  }
+
+  .geo-find__input {
+    width: 100%;
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    font: inherit;
+    font-size: var(--fs-base);
+    color: var(--text-strong);
+  }
+
+  .geo-find__input::placeholder {
+    color: var(--text-faint);
+  }
+
+  .geo-find__input:focus-visible {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 1px;
+  }
+
+  .geo-tier__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-2) var(--sp-3);
+    margin-bottom: var(--sp-3);
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .geo-tier__name {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    letter-spacing: var(--ls-heading);
+    color: var(--text-strong);
+  }
+
+  .geo-tier__note {
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+  }
+
+  .geo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .geo-chip {
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--chip-bg, var(--bg-sunken));
+    border-radius: var(--r-pill);
+    font-size: var(--fs-base);
+    color: var(--text);
+  }
+
+  .section--sunken .geo-chip {
+    --chip-bg: var(--bg-raised);
+  }
+
+  .geo-rows {
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+
+  .geo-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-3) var(--sp-2);
+    font-size: var(--fs-base);
+  }
+
+  .geo-row + .geo-row {
+    border-top: 1px solid var(--line);
+  }
+
+  .geo-row__name {
+    color: var(--text);
+  }
+
+  .geo-row__km {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+  }
+
+  .geo-none {
+    padding: var(--sp-4);
+    background: var(--chip-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .section--sunken .geo-none {
+    --chip-bg: var(--bg-raised);
+  }
+</style>
+
+<script>
+
+  document.querySelectorAll<HTMLElement>('.geo-side').forEach((root) => {
+    const field = root.querySelector<HTMLInputElement>('.geo-find__input');
+    const none = root.querySelector<HTMLElement>('.geo-none');
+    if (!field) return;
+
+    const items = [...root.querySelectorAll<HTMLElement>('[data-find]')];
+    const plain = (s: string) => s.toLowerCase().replace(/ё/g, 'е').trim();
+
+    field.addEventListener('input', () => {
+      const q = plain(field.value);
+      let shown = 0;
+
+      for (const item of items) {
+        const hit = !q || plain(item.dataset.find ?? '').includes(q);
+        item.hidden = !hit;
+        if (hit) shown++;
+      }
+
+      root.querySelectorAll<HTMLElement>('[data-tier]').forEach((tier) => {
+        const alive = [...tier.querySelectorAll<HTMLElement>('[data-find]')].some((x) => !x.hidden);
+        tier.hidden = !alive;
+      });
+
+      if (none) none.hidden = shown > 0;
+    });
+  });
+</script>

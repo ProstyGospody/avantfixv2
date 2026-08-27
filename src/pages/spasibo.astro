@@ -1,0 +1,308 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ApplianceIcon from '@/components/ApplianceIcon.astro';
+import { APPLIANCES } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { WARRANTY } from '@/config/site';
+import { minWorkPrice } from '@/lib/pricing';
+import { price, telHref } from '@/lib/format';
+
+const phone = CITY.phoneCity || CITY.phoneMobile;
+
+const next = [
+  {
+    time: '5 минут',
+    title: 'Перезваниваем',
+    text: 'Уточняем марку, модель и что происходит с техникой. По описанию мастер уже понимает, какие запчасти взять с собой.',
+  },
+  {
+    time: 'В тот же день',
+    title: 'Согласуем время',
+    text: `Называем ближайшее окно выезда. Работаем ${CITY.workHours.days} с ${CITY.workHours.open} до ${CITY.workHours.close}.`,
+  },
+  {
+    time: `${CITY.arrivalMinutes} минут`,
+    title: 'Мастер приезжает',
+    text: 'Звонит за 15 минут до приезда, чтобы вам не ждать у двери. Диагностика бесплатна при согласии на ремонт.',
+  },
+  {
+    time: 'После проверки',
+    title: 'Оплата и гарантия',
+    text: `Запускаем технику при вас, выдаём чек и гарантийный талон. ${WARRANTY.text}.`,
+  },
+];
+---
+
+<BaseLayout
+  title="Заявка принята"
+  description="Заявка на вызов мастера принята. Рассказываем, что будет дальше и в какие сроки."
+  noindex
+  hasForm={false}
+>
+  <section class="section">
+    <div class="container">
+      <div class="ty">
+        <span class="ty__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12.5 4.5 4.5L19 7.5" />
+          </svg>
+        </span>
+        <h1>Заявка принята</h1>
+        <p class="ty__lead">
+          Перезвоним в течение нескольких минут в рабочее время. Если ждать
+          не хочется — позвоните сами, ответим сразу.
+        </p>
+        <div class="ty__actions">
+          <a class="btn btn--primary btn--lg" href={telHref(phone)} data-goal="phone-thanks">
+            {phone}
+          </a>
+          <a class="btn btn--soft btn--lg" href="/">На главную</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--sunken">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Что дальше</p>
+        <h2>Как будет проходить ремонт</h2>
+      </div>
+
+      <ol class="next">
+        {
+          next.map((step, i) => (
+            <li class="next__item">
+              <span class="next__num" aria-hidden="true">{i + 1}</span>
+              <p class="next__time">{step.time}</p>
+              <h3 class="next__title">{step.title}</h3>
+              <p class="next__text">{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="container">
+      <p class="explore__title">Пока ждёте — можно посмотреть цены</p>
+
+      <ul class="explore">
+        {
+          APPLIANCES.map((a) => (
+            <li>
+              <a href={`/${a.slug}/ceny/`}>
+                <span class="explore__icon" aria-hidden="true">
+                  <ApplianceIcon slug={a.slug} size={18} />
+                </span>
+                <span>{a.short}</span>
+                <span class="explore__price">от {price(minWorkPrice(a, CITY))}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ty {
+    max-width: 56ch;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .ty__icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--sp-6);
+    border-radius: 20px;
+    background: var(--pos-50);
+    color: var(--pos-700);
+  }
+
+  .ty__icon svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .ty__lead {
+    margin-top: var(--sp-5);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+
+  .ty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--sp-3);
+    margin-top: var(--sp-6);
+  }
+
+  .next {
+    --node: 40px;
+    --line: 2px;
+
+    overflow-x: clip;
+    overflow-clip-margin: 8px;
+    display: grid;
+    gap: var(--sp-7) var(--sp-6);
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+
+  .next__item {
+    position: relative;
+    padding-top: calc(var(--node) + var(--sp-5));
+  }
+
+  .next__item::before {
+    content: '';
+    position: absolute;
+    inset-inline: calc(var(--node) / 2) calc(var(--sp-6) * -1);
+    top: calc((var(--node) - var(--line)) / 2);
+    height: var(--line);
+    background: var(--line-strong);
+  }
+
+  .next__item:last-child::before {
+    display: none;
+  }
+
+  .next__num {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    border-radius: 50%;
+    background: var(--accent-soft);
+
+    box-shadow: 0 0 0 6px var(--bg-sunken);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 800;
+    color: var(--accent-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 620px) {
+    .next__item {
+      padding-top: 0;
+      padding-left: calc(var(--node) + var(--sp-5));
+      min-height: var(--node);
+    }
+
+    .next__item::before {
+      inset-inline: calc((var(--node) - var(--line)) / 2) auto;
+      top: var(--node);
+      bottom: calc(var(--sp-7) * -1);
+      width: var(--line);
+      height: auto;
+    }
+  }
+
+  .next__time {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+
+  .next__title {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-lg);
+  }
+
+  .next__text {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-base);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+
+  .explore__title {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+    text-align: center;
+  }
+
+  .explore {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .explore a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-2);
+    background: var(--bg-sunken);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-base);
+    color: var(--text-strong);
+    text-decoration: none;
+    transition: background-color 0.16s var(--ease);
+  }
+
+  .explore__icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+  }
+
+  .explore__price {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .explore a:hover {
+    background: var(--accent-soft);
+    text-decoration: none;
+  }
+
+  @media (max-width: 560px) {
+    .explore {
+      display: grid;
+      gap: var(--sp-2);
+    }
+
+    .explore a {
+      display: flex;
+      justify-content: flex-start;
+      border-radius: var(--r-lg);
+    }
+
+    .explore__price {
+      margin-left: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .ty__actions .btn {
+      width: 100%;
+    }
+  }
+</style>

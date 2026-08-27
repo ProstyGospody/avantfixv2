@@ -1,0 +1,103 @@
+---
+
+interface Crumb {
+  name: string;
+  href?: string;
+}
+
+interface Props {
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="crumbs" aria-label="Хлебные крошки">
+  <div class="container">
+    <ol>
+      <li>
+        <a href="/">
+          <span class="crumbs__home" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3.5 8.6 10 3.5l6.5 5.1V16a.9.9 0 0 1-.9.9H4.4a.9.9 0 0 1-.9-.9Z" />
+              <path d="M8.2 16.9v-4.4h3.6v4.4" />
+            </svg>
+          </span>
+          Главная
+        </a>
+      </li>
+      {
+        items.map((item) => (
+          <li>
+            {item.href ? <a href={item.href}>{item.name}</a> : <span aria-current="page">{item.name}</span>}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</nav>
+
+<style>
+
+  .crumbs {
+    padding-block: var(--sp-4);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-sm);
+  }
+
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+  }
+
+  li:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-left: var(--sp-2);
+    border-right: 1.5px solid var(--n-300, var(--text-faint));
+    border-bottom: 1.5px solid var(--n-300, var(--text-faint));
+    transform: rotate(-45deg);
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding-block: var(--sp-1);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--accent-text);
+  }
+
+  .crumbs__home {
+    display: grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+  }
+
+  .crumbs__home svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  [aria-current='page'] {
+    color: var(--text-strong);
+    font-weight: 500;
+  }
+</style>

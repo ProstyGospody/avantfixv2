@@ -1,0 +1,191 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ApplianceIcon from '@/components/ApplianceIcon.astro';
+import { APPLIANCES } from '@/data/appliances';
+import { CITY } from '@/lib/city';
+import { minWorkPrice } from '@/lib/pricing';
+import { price, telHref } from '@/lib/format';
+
+const phone = CITY.phoneCity || CITY.phoneMobile;
+---
+
+<BaseLayout
+  title="Страница не найдена"
+  description="Такой страницы на сайте нет. Выберите нужный раздел или позвоните нам."
+  noindex
+  hasForm={false}
+>
+
+  <section class="section section--sunken">
+    <div class="container">
+      <div class="nf">
+        <p class="nf__code" aria-hidden="true">404</p>
+        <h1>Такой страницы нет</h1>
+        <p class="nf__lead">
+          Возможно, ссылка устарела или в адресе опечатка. Ниже — то, за чем
+          обычно приходят; если нужного нет, просто позвоните.
+        </p>
+        <div class="nf__actions">
+          <a class="btn btn--primary btn--lg" href={telHref(phone)} data-goal="phone-404">
+            Позвонить {phone}
+          </a>
+          <a class="btn btn--soft btn--lg" href="/">На главную</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Услуги</p>
+        <h2>Что мы ремонтируем {CITY.inPrep}</h2>
+      </div>
+
+      <ul class="svc">
+        {
+          APPLIANCES.map((a) => (
+            <li>
+              <a href={`/${a.slug}/`} class="card">
+                <span class="card__icon">
+                  <ApplianceIcon slug={a.slug} size={22} />
+                </span>
+                <span class="card__body">
+                  <span class="card__title">{a.short}</span>
+                  <span class="card__price">от {price(minWorkPrice(a, CITY))}</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="more">
+        <a href="/kontakty/" class="link-arrow">Контакты и часы работы</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    max-width: 56ch;
+  }
+
+  .nf__code {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 12vw, 6rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: var(--line-strong);
+  }
+
+  .nf h1 {
+    margin-top: var(--sp-4);
+  }
+
+  .nf__lead {
+    margin-top: var(--sp-5);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-top: var(--sp-6);
+  }
+
+  .svc {
+    display: grid;
+    gap: var(--sp-3);
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  }
+
+  @media (min-width: 900px) {
+    .svc {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--sp-4);
+    height: 100%;
+    padding: var(--sp-5);
+
+    background: var(--tile-bg, var(--bg-sunken));
+    border-radius: var(--r-lg);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      background-color 0.18s var(--ease),
+      box-shadow 0.18s var(--ease);
+  }
+
+  .section--sunken .card {
+    --tile-bg: var(--bg-raised);
+  }
+
+  .card:hover {
+    background: var(--bg-raised);
+    box-shadow: var(--shadow-2);
+    text-decoration: none;
+  }
+
+  .section--sunken .card:hover {
+    background: var(--bg-raised);
+  }
+
+  .card__body {
+    min-width: 0;
+  }
+
+  .card__icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg-raised);
+    color: var(--accent-text);
+  }
+
+  .card:hover .card__icon {
+    background: var(--accent-soft);
+  }
+
+  .card__title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--text-strong);
+  }
+
+  .card__price {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .more {
+    margin-top: var(--sp-6);
+  }
+
+  @media (max-width: 480px) {
+    .nf__actions .btn {
+      width: 100%;
+    }
+  }
+</style>

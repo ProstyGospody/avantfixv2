@@ -1,0 +1,75 @@
+---
+import LogoMark from '@/components/LogoMark.astro';
+import { BRAND } from '@/config/site';
+
+interface Props {
+  size?: number;
+
+  withName?: boolean;
+
+  link?: boolean;
+
+  tone?: 'accent' | 'onDark' | 'muted';
+}
+
+const { size = 30, withName = true, link = true, tone = 'accent' } = Astro.props;
+const Tag = link ? 'a' : 'span';
+const attrs = link ? { href: '/', 'aria-label': `${BRAND.name} — на главную` } : {};
+---
+
+<Tag class:list={['logo', `logo--${tone}`]} {...attrs}>
+  <span class="logo__mark">
+    <LogoMark size={size} />
+  </span>
+  {withName && <span class="logo__name">{BRAND.name}</span>}
+  {!withName && <span class="visually-hidden">{BRAND.name}</span>}
+</Tag>
+
+<style>
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    min-height: 44px;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  .logo:hover {
+    text-decoration: none;
+  }
+
+  .logo--accent .logo__mark {
+    color: var(--accent);
+  }
+
+  .logo--onDark .logo__mark {
+    color: var(--text-inverse);
+  }
+
+  .logo--muted .logo__mark {
+    color: var(--text-muted);
+  }
+
+  .logo__mark {
+    display: grid;
+    place-items: center;
+  }
+
+  .logo__name {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: var(--text-strong);
+  }
+
+  .logo--onDark .logo__name {
+    color: var(--text-inverse);
+  }
+
+  .logo:hover .logo__mark {
+    opacity: 0.85;
+  }
+</style>

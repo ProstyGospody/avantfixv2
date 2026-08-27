@@ -1,0 +1,43 @@
+---
+import { BRAND, YANDEX_CARD } from '@/config/site';
+import { CITY } from '@/lib/city';
+
+interface Props {
+  invert?: boolean;
+  class?: string;
+}
+
+const { invert = false, class: className } = Astro.props;
+const card = YANDEX_CARD[CITY.slug];
+---
+
+{
+  card?.orgId && (
+    <iframe
+      class:list={['rate', invert && 'rate--invert', className]}
+      src={`https://yandex.ru/sprav/widget/rating-badge/${card.orgId}?type=rating`}
+      width="150"
+      height="50"
+      loading="lazy"
+      title={`Оценка ${BRAND.name} на Яндекс Картах`}
+    />
+  )
+}
+
+<style>
+
+  .rate {
+    display: block;
+    flex: none;
+    border: 0;
+    color-scheme: light;
+  }
+
+  .rate {
+    align-self: center;
+  }
+
+  .rate--invert {
+    border-radius: var(--r-md);
+  }
+</style>
