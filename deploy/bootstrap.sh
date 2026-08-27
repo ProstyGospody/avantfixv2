@@ -26,12 +26,16 @@ fi
 install -d /srv/avantfix
 
 if [[ -d "$REPO_DIR/.git" ]]; then
-  git -C "$REPO_DIR" fetch --quiet --prune origin
-  git -C "$REPO_DIR" reset --quiet --hard "origin/$BRANCH"
+  owner=$(stat -c %U "$REPO_DIR")
+  as_owner=(runuser -u "$owner" --)
+  [[ "$owner" == root ]] && as_owner=()
+  "${as_owner[@]}" git -C "$REPO_DIR" fetch --quiet --prune origin
+  "${as_owner[@]}" git -C "$REPO_DIR" reset --quiet --hard "origin/$BRANCH"
 else
+  as_owner=()
   git clone --quiet --branch "$BRANCH" "$REPO_URL" "$REPO_DIR"
 fi
 
-printf '  %s\n' "$(git -C "$REPO_DIR" log -1 --format='%h %s')"
+printf '  %s\n' "$("${as_owner[@]}" git -C "$REPO_DIR" log -1 --format='%h %s')"
 
 exec bash "$REPO_DIR/deploy/server-setup.sh"
