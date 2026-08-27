@@ -6,7 +6,7 @@ export const BRAND = {
   inn: '311404706888',
   ogrn: '325310000070089',
   slogan: 'Выездной ремонт крупной бытовой техники',
-  email: 'rbtbelgorod31@yandex.ru',
+  email: 'info@avantfix.ru',
   foundedYear: 2026,
 } as const;
 

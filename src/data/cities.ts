@@ -46,7 +46,7 @@ export const CITIES: Record<CitySlug, City> = {
     yandexRegion: 'Белгород',
     timezone: 'Europe/Moscow',
     geo: { lat: 50.5977, lon: 36.5858 },
-    phoneCity: '+7 (4722) 56-78-76',
+    phoneCity: '',
     phoneMobile: '+7 (951) 156-78-76',
     address: null,
     workHours: { open: '09:00', close: '21:00', days: 'ежедневно' },
