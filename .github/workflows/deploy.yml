@@ -1,0 +1,67 @@
+name: Сборка и выкладка
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Белгород
+        env:
+          PUBLIC_METRIKA_ID: ${{ vars.METRIKA_BELGOROD }}
+        run: npm run build:belgorod
+
+      - name: Старый Оскол
+        env:
+          PUBLIC_METRIKA_ID: ${{ vars.METRIKA_OSKOL }}
+        run: npm run build:oskol
+
+      - name: Губкин
+        env:
+          PUBLIC_METRIKA_ID: ${{ vars.METRIKA_GUBKIN }}
+        run: npm run build:gubkin
+
+      - name: Проверки
+        run: |
+          node scripts/links.mjs
+          node scripts/anchors.mjs
+          node scripts/orphan-classes.mjs
+          node scripts/audit.mjs
+
+      - name: Ключ и хост
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Выкладка
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: ./deploy/release.sh
+
+      - name: Убрать ключ
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519
