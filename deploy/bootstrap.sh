@@ -6,6 +6,13 @@ REPO_URL="${REPO_URL:-https://github.com/ProstyGospody/avantfixv2.git}"
 BRANCH="${BRANCH:-main}"
 REPO_DIR=/srv/avantfix/repo
 
+printf '\n\033[1mAvantFix\033[0m — развёртывание на %s\n' "$(hostname)"
+
+if [[ ! -f /etc/debian_version ]]; then
+  echo "Это не Ubuntu или Debian. Скрипт запускают на сервере, под root." >&2
+  exit 1
+fi
+
 if [[ $EUID -ne 0 ]]; then
   echo "Запускать от root" >&2
   exit 1
@@ -18,6 +25,7 @@ fi
 printf '\n\033[1mКод\033[0m\n'
 
 if ! command -v git >/dev/null 2>&1; then
+  printf '  ставлю git, это займёт минуту\n'
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
   apt-get install -y -qq git ca-certificates >/dev/null

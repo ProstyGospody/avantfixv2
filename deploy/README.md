@@ -19,7 +19,7 @@
 Зайти на сервер под root и выполнить:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ProstyGospody/avantfixv2/main/deploy/bootstrap.sh | bash
+curl -fsSL -o /tmp/avantfix.sh https://raw.githubusercontent.com/ProstyGospody/avantfixv2/main/deploy/bootstrap.sh && bash /tmp/avantfix.sh
 ```
 
 Больше ничего не нужно: ни рабочей машины, ни ключей, ни копирования

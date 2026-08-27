@@ -92,7 +92,7 @@ deploy/                nginx, systemd, обработчик заявок, инс
 обновляет до свежего коммита:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ProstyGospody/avantfixv2/main/deploy/bootstrap.sh | bash
+curl -fsSL -o /tmp/avantfix.sh https://raw.githubusercontent.com/ProstyGospody/avantfixv2/main/deploy/bootstrap.sh && bash /tmp/avantfix.sh
 ```
 
 Сервер сам собирает сайт из репозитория. Выпуски лежат рядом,
