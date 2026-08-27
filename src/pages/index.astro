@@ -33,7 +33,7 @@ const copy = HOME_COPY[CITY.slug];
 const from = price(Math.min(...APPLIANCES.map((a) => minWorkPrice(a, CITY))));
 
 const h1 = `Ремонт бытовой техники ${CITY.inPrep} на дому`;
-const title = buildTitle(h1, `выезд за ${CITY.arrivalMinutes} мин, от ${from}`);
+const title = buildTitle(h1, `выезд за ${CITY.arrivalMinutes} мин, от ${from}`, `от ${from}, выезд в день обращения`, `от ${from}`);
 const description =
   `Ремонт стиральных и посудомоечных машин, холодильников, духовых шкафов и вытяжек ` +
   `на дому ${CITY.inPrep}. Выезд за ${CITY.arrivalMinutes} мин, диагностика бесплатно, ` +

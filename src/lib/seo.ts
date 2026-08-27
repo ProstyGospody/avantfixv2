@@ -11,11 +11,13 @@ export function absoluteUrl(path: string, city: City): string {
   return `${cityOrigin(city, DOMAIN)}${withSlash}`;
 }
 
-export function buildTitle(core: string, offer?: string): string {
-  const withOffer = offer ? `${core} — ${offer}` : core;
-  const full = `${withOffer} | ${BRAND.name}`;
-  if (full.length <= TITLE_MAX) return full;
-  if (withOffer.length <= TITLE_MAX) return withOffer;
+export function buildTitle(core: string, ...offers: string[]): string {
+  for (const offer of offers.length ? offers : ['']) {
+    const withOffer = offer ? `${core} — ${offer}` : core;
+    const full = `${withOffer} | ${BRAND.name}`;
+    if (full.length <= TITLE_MAX) return full;
+    if (withOffer.length <= TITLE_MAX) return withOffer;
+  }
   return core.slice(0, TITLE_MAX);
 }
 

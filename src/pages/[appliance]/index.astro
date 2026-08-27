@@ -41,7 +41,7 @@ const from = price(minWorkPrice(appliance, CITY));
 const path = `/${appliance.slug}/`;
 
 const h1 = `Ремонт ${appliance.genitivePlural} ${CITY.inPrep}`;
-const title = buildTitle(`${h1} на дому`, `от ${from}, выезд за ${CITY.arrivalMinutes} мин`);
+const title = buildTitle(`${h1} на дому`, `от ${from}, выезд за ${CITY.arrivalMinutes} мин`, `от ${from}`);
 
 const description =
   `Ремонт ${appliance.genitivePlural} на дому ${CITY.inPrep}: выезд за ` +
