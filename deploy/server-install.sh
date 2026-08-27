@@ -6,6 +6,7 @@ DOMAIN=avantfix.ru
 HOSTS=(avantfix.ru www.avantfix.ru belgorod.avantfix.ru oskol.avantfix.ru gubkin.avantfix.ru)
 CITIES=(belgorod oskol gubkin)
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
+REPO_URL="${REPO_URL:-git@github.com:ProstyGospody/avantfixv2.git}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 PUBKEY="${1:-}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,8 +22,8 @@ fi
 say "Пакеты"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq nginx rsync curl ca-certificates certbot ufw >/dev/null
-note "nginx, rsync, certbot, ufw"
+apt-get install -y -qq nginx rsync curl ca-certificates git sudo certbot ufw >/dev/null
+note "nginx, rsync, git, certbot, ufw"
 
 say "Node"
 need_node=1
@@ -38,6 +39,21 @@ if [[ $need_node -eq 1 ]]; then
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1
   apt-get install -y -qq nodejs >/dev/null
   note "установлен $(node -v)"
+fi
+
+say "Память"
+mem=$(awk '/^MemTotal:/{print int($2/1024)}' /proc/meminfo)
+if [[ $mem -ge 2048 ]]; then
+  note "$mem МБ, хватает"
+elif [[ -f /swapfile ]]; then
+  note "$mem МБ, подкачка уже есть"
+else
+  fallocate -l 2G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none
+  chmod 600 /swapfile
+  mkswap /swapfile >/dev/null
+  swapon /swapfile
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  note "$mem МБ — добавлен файл подкачки 2 ГБ, иначе сборка не влезет"
 fi
 
 say "Пользователь $DEPLOY_USER"
@@ -71,6 +87,47 @@ mkdir -p /var/www/certbot /opt/avantfix /var/log/avantfix
 chown -R "$DEPLOY_USER:$DEPLOY_USER" /var/www/avantfix
 chown -R www-data:www-data /var/log/avantfix
 note "/var/www/avantfix, /opt/avantfix, /var/log/avantfix"
+
+say "Репозиторий"
+install -d -o "$DEPLOY_USER" -g "$DEPLOY_USER" /srv/avantfix
+home=$(getent passwd "$DEPLOY_USER" | cut -d: -f6)
+sudo -u "$DEPLOY_USER" mkdir -p "$home/.ssh"
+if [[ ! -f "$home/.ssh/github" ]]; then
+  sudo -u "$DEPLOY_USER" ssh-keygen -t ed25519 -f "$home/.ssh/github" -N "" -C "avantfix server" >/dev/null
+  note "ключ для github создан"
+fi
+if ! grep -q "Host github.com" "$home/.ssh/config" 2>/dev/null; then
+  printf 'Host github.com\n  IdentityFile %s/.ssh/github\n  IdentitiesOnly yes\n' "$home" \
+    | sudo -u "$DEPLOY_USER" tee -a "$home/.ssh/config" >/dev/null
+  chmod 600 "$home/.ssh/config"
+fi
+if ! grep -q "github.com" "$home/.ssh/known_hosts" 2>/dev/null; then
+  ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo -u "$DEPLOY_USER" tee -a "$home/.ssh/known_hosts" >/dev/null
+fi
+chown -R "$DEPLOY_USER:$DEPLOY_USER" "$home/.ssh"
+
+repo_ready=0
+if [[ -d /srv/avantfix/repo/.git ]]; then
+  repo_ready=1
+  note "уже склонирован"
+elif sudo -u "$DEPLOY_USER" git clone --quiet "$REPO_URL" /srv/avantfix/repo 2>/dev/null; then
+  repo_ready=1
+  note "склонирован $REPO_URL"
+else
+  note "клонировать не вышло — ключ ещё не добавлен в github"
+fi
+
+install -m 755 "$HERE/update.sh" /usr/local/bin/avantfix-update
+install -d /etc/avantfix
+if [[ ! -f /etc/avantfix/build.env ]]; then
+  cat > /etc/avantfix/build.env <<'CFG'
+METRIKA_BELGOROD=
+METRIKA_OSKOL=
+METRIKA_GUBKIN=
+CFG
+  chmod 644 /etc/avantfix/build.env
+fi
+note "команда обновления: avantfix-update"
 
 say "Приём заявок"
 install -m 644 "$HERE/lead-service.mjs" "$HERE/mailer.mjs" /opt/avantfix/
@@ -168,12 +225,28 @@ ufw --force enable >/dev/null 2>&1 || true
 note "открыты $ssh_port, 80, 443"
 
 say "Готово"
-note "выкладывать: DEPLOY_HOST=$DEPLOY_USER@$DOMAIN ./deploy/release.sh --build"
+
+if [[ $repo_ready -eq 0 ]]; then
+  note "добавьте этот ключ в github → Settings → Deploy keys (без права записи):"
+  echo
+  cat "$home/.ssh/github.pub" | sed 's/^/    /'
+  echo
+  note "потом повторите запуск setup.sh — репозиторий склонируется"
+else
+  note "выкладывать: ssh $DEPLOY_USER@$DOMAIN avantfix-update"
+fi
+
 if [[ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
   echo
   note "когда DNS доедет, добрать сертификат и включить TLS:"
   note "  bash /opt/avantfix-setup/server-install.sh"
 fi
+
+if ! grep -q "METRIKA_BELGOROD=." /etc/avantfix/build.env; then
+  echo
+  note "номера счётчиков метрики: /etc/avantfix/build.env"
+fi
+
 if ! grep -q "TELEGRAM_TOKEN" /etc/systemd/system/avantfix-lead.service; then
   echo
   note "заявки сейчас копятся только в /var/log/avantfix/leads.jsonl"

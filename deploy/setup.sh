@@ -5,6 +5,8 @@ set -euo pipefail
 SERVER="${1:-${SETUP_HOST:-}}"
 KEY="${SETUP_KEY:-$HOME/.ssh/avantfix-deploy}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
+REPO_URL="${REPO_URL:-git@github.com:ProstyGospody/avantfixv2.git}"
+CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
@@ -16,9 +18,9 @@ if [[ -z "$SERVER" ]]; then
 
   ./deploy/setup.sh root@1.2.3.4
 
-Ставит nginx, node и certbot, заводит пользователя для выкладки,
-поднимает приём заявок, включает файрвол и выпускает сертификаты,
-если DNS уже указывает на этот сервер.
+Ставит nginx, node, git и certbot, заводит пользователя для выкладки,
+клонирует репозиторий, поднимает приём заявок, включает файрвол
+и выпускает сертификаты, если DNS уже указывает на этот сервер.
 
 Повторный запуск безопасен: всё, что уже сделано, пропускается.
 EOF
@@ -43,13 +45,14 @@ ssh "$SERVER" "mkdir -p /opt/avantfix-setup"
 rsync -az --delete "$HERE/" "$SERVER:/opt/avantfix-setup/"
 note "deploy/ → /opt/avantfix-setup"
 
-ssh -t "$SERVER" "DEPLOY_USER='$DEPLOY_USER' bash /opt/avantfix-setup/server-install.sh '$PUBKEY'"
+ssh -t "$SERVER" "DEPLOY_USER='$DEPLOY_USER' REPO_URL='$REPO_URL' CERTBOT_EMAIL='$CERTBOT_EMAIL' bash /opt/avantfix-setup/server-install.sh '$PUBKEY'"
 
 HOST_ONLY="${SERVER#*@}"
 
 say "Дальше"
 note "проверить вход:   ssh -i $KEY $DEPLOY_USER@$HOST_ONLY"
-note "первый выпуск:    DEPLOY_HOST=$DEPLOY_USER@$HOST_ONLY ./deploy/release.sh --build"
+note "выложить сайт:    ssh $DEPLOY_USER@$HOST_ONLY avantfix-update"
+note "откатиться:       ssh $DEPLOY_USER@$HOST_ONLY avantfix-update --rollback"
 echo
 note "если ключ не подхватывается, добавьте его в ~/.ssh/config:"
 note "  Host $HOST_ONLY"
