@@ -130,6 +130,22 @@ fi
 note "команда обновления: avantfix-update"
 
 say "Приём заявок"
+install -d /etc/avantfix
+if [[ ! -f /etc/avantfix/lead.env ]]; then
+  cat > /etc/avantfix/lead.env <<'CFG'
+TELEGRAM_TOKEN=
+TELEGRAM_CHAT_ID=
+
+SMTP_HOST=smtp.yandex.ru
+SMTP_PORT=465
+SMTP_USER=
+SMTP_PASS=
+MAIL_TO=
+MAIL_FROM=
+CFG
+  chmod 600 /etc/avantfix/lead.env
+  note "заготовка /etc/avantfix/lead.env создана"
+fi
 install -m 644 "$HERE/lead-service.mjs" "$HERE/mailer.mjs" /opt/avantfix/
 install -m 644 "$HERE/avantfix-lead.service" /etc/systemd/system/
 systemctl daemon-reload
@@ -247,8 +263,8 @@ if ! grep -q "METRIKA_BELGOROD=." /etc/avantfix/build.env; then
   note "номера счётчиков метрики: /etc/avantfix/build.env"
 fi
 
-if ! grep -q "TELEGRAM_TOKEN" /etc/systemd/system/avantfix-lead.service; then
+if ! grep -qE '^(TELEGRAM_TOKEN|SMTP_USER)=.+' /etc/avantfix/lead.env; then
   echo
   note "заявки сейчас копятся только в /var/log/avantfix/leads.jsonl"
-  note "телеграм и почта включаются переменными в юните, см. deploy/README.md"
+  note "телеграм и почта включаются в /etc/avantfix/lead.env"
 fi
