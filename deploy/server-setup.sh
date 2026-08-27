@@ -49,6 +49,9 @@ if [[ $fresh -eq 1 ]]; then
   note "nginx, rsync, git, certbot, ufw"
 
   say "Node"
+  if ! command -v node >/dev/null 2>&1; then
+    apt-get install -y -qq nodejs npm >/dev/null 2>&1 || true
+  fi
   need_node=1
   if command -v node >/dev/null 2>&1; then
     major=$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)
@@ -62,6 +65,10 @@ if [[ $fresh -eq 1 ]]; then
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1
     apt-get install -y -qq nodejs >/dev/null
     note "установлен $(node -v)"
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm не установился" >&2
+    exit 1
   fi
 
   say "Память"
