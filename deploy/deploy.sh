@@ -29,7 +29,7 @@ EOF
   exit 1
 fi
 
-for tool in ssh rsync ssh-keygen; do
+for tool in ssh ssh-keygen tar; do
   command -v "$tool" >/dev/null 2>&1 || { echo "Нет $tool" >&2; exit 1; }
 done
 
@@ -51,8 +51,8 @@ fi
 PUBKEY="$(cat "$KEY.pub")"
 
 say "Сервер"
-ssh "$SERVER" "mkdir -p /opt/avantfix-setup"
-rsync -az --delete "$HERE/" "$SERVER:/opt/avantfix-setup/"
+tar -czf - -C "$HERE" . \
+  | ssh "$SERVER" "rm -rf /opt/avantfix-setup && mkdir -p /opt/avantfix-setup && tar -xzf - -C /opt/avantfix-setup"
 note "$SERVER"
 
 mkdir -p "$STATE"

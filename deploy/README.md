@@ -16,6 +16,8 @@
 
 ## Одна команда
 
+Запускать в Git Bash из папки проекта (в PowerShell файлы .sh не выполняются).
+
 ```bash
 ./deploy/deploy.sh root@1.2.3.4
 ```
