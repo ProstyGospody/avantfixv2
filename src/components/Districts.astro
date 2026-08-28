@@ -233,11 +233,11 @@ const zones = [
   }
 
   .geo-zone--city {
-    --zone-line: var(--accent);
+    --zone-line: var(--n-300);
   }
 
   .geo-zone--near {
-    --zone-line: var(--accent-soft);
+    --zone-line: var(--n-200);
   }
 
   .geo-zone__title {
@@ -364,12 +364,13 @@ const zones = [
   }
 
   .geo-chip:hover {
-    --chip-bg: var(--accent-soft);
+    background: var(--accent-soft);
     color: var(--accent-text);
   }
 
-  .geo-chip.is-on {
-    --chip-bg: var(--accent);
+  .geo-chip.is-on,
+  .geo-chip.is-on:hover {
+    background: var(--accent);
     color: var(--on-accent);
   }
 
