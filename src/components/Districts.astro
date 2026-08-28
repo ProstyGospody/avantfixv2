@@ -38,6 +38,7 @@ const far = nearby.filter((n) => n.km === null || n.km > NEAR_LIMIT);
 const zones = [
   {
     title: CITY.name,
+    label: `по ${CITY.dative}`,
     scope: `${CITY.districts.length} ${plural(CITY.districts.length, ['район', 'района', 'районов'])}`,
     cost: 'выезд бесплатный',
     time: `в среднем ${CITY.arrivalMinutes} мин`,
@@ -45,6 +46,7 @@ const zones = [
   },
   {
     title: `Пригород до ${NEAR_LIMIT} км`,
+    label: `пригород до ${NEAR_LIMIT} км`,
     scope: `${near.length} ${plural(near.length, ['посёлок', 'посёлка', 'посёлков'])}`,
     cost: 'выезд бесплатный',
     time: `в среднем ${CITY.arrivalMinutes + 15} мин`,
@@ -52,6 +54,7 @@ const zones = [
   },
   {
     title: `Дальше ${NEAR_LIMIT} км`,
+    label: `дальше ${NEAR_LIMIT} км`,
     scope: far.length
       ? `${far.length} ${plural(far.length, ['населённый пункт', 'населённых пункта', 'населённых пунктов'])}`
       : 'по области',
@@ -80,7 +83,12 @@ const zones = [
 
         <ol class="geo-zones__list">
           {zones.map((z) => (
-            <li class:list={['geo-zone', `geo-zone--${z.tone}`]}>
+            <li
+              class:list={['geo-zone', `geo-zone--${z.tone}`]}
+              data-zone={z.tone}
+              data-title={z.label}
+              data-answer={`${z.cost}, ${z.time}`}
+            >
               <p class="geo-zone__title">
                 {z.title}
                 <span class="geo-zone__scope">{z.scope}</span>
@@ -108,17 +116,27 @@ const zones = [
           spellcheck="false"
         />
 
+        <p class="geo-answer" role="status" aria-live="polite" hidden></p>
+
         <div data-tier>
           <p class="geo-tier__head">
             <span class="geo-tier__name">Районы {CITY.genitive}</span>
             <span class="geo-tier__note">выезд бесплатный, в среднем {CITY.arrivalMinutes} мин</span>
           </p>
 
-          <ul class="geo-chips">
+          <div class="geo-chips">
             {districts.map((d) => (
-              <li class="geo-chip" data-find={d.name.toLowerCase()}>{d.name}</li>
+              <button
+                class="geo-chip"
+                type="button"
+                data-find={d.name.toLowerCase()}
+                data-zone="city"
+                data-name={d.name}
+              >
+                {d.name}
+              </button>
             ))}
-          </ul>
+          </div>
         </div>
 
         <div data-tier>
@@ -127,14 +145,20 @@ const zones = [
             <span class="geo-tier__note">время выезда согласуем при заявке</span>
           </p>
 
-          <ul class="geo-rows">
+          <div class="geo-rows">
             {nearby.map((n) => (
-              <li class="geo-row" data-find={n.name.toLowerCase()}>
+              <button
+                class="geo-row"
+                type="button"
+                data-find={n.name.toLowerCase()}
+                data-zone={n.km !== null && n.km <= NEAR_LIMIT ? 'near' : 'far'}
+                data-name={n.name}
+              >
                 <span class="geo-row__name">{n.name}</span>
                 <span class="geo-row__km">{n.km ? `${Math.round(n.km)} км` : 'по договорённости'}</span>
-              </li>
+              </button>
             ))}
-          </ul>
+          </div>
         </div>
 
         <p class="geo-none" hidden>
@@ -190,8 +214,22 @@ const zones = [
   }
 
   .geo-zone {
-    padding-left: var(--sp-4);
+    padding: var(--sp-1) var(--sp-4);
     border-left: 3px solid var(--zone-line, var(--line-strong));
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .geo-zone.is-lit {
+    --zone-line: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .geo-zone.is-lit .geo-zone__time {
+    font-weight: 700;
+    color: var(--accent-text);
   }
 
   .geo-zone--city {
@@ -305,13 +343,40 @@ const zones = [
   .geo-chip {
     padding: var(--sp-2) var(--sp-4);
     background: var(--chip-bg, var(--bg-sunken));
+    border: 0;
     border-radius: var(--r-pill);
+    font: inherit;
     font-size: var(--fs-base);
     color: var(--text);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
 
   .section--sunken .geo-chip {
     --chip-bg: var(--bg-raised);
+  }
+
+  .geo-chip[hidden],
+  .geo-row[hidden] {
+    display: none;
+  }
+
+  .geo-chip:hover {
+    --chip-bg: var(--accent-soft);
+    color: var(--accent-text);
+  }
+
+  .geo-chip.is-on {
+    --chip-bg: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .geo-chip:focus-visible,
+  .geo-row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .geo-rows {
@@ -325,8 +390,29 @@ const zones = [
     align-items: baseline;
     justify-content: space-between;
     gap: var(--sp-4);
+    width: 100%;
     padding: var(--sp-3) var(--sp-2);
+    background: none;
+    border: 0;
+    border-radius: var(--r-sm);
+    font: inherit;
     font-size: var(--fs-base);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .geo-row:hover {
+    background: var(--accent-soft);
+  }
+
+  .geo-row.is-on {
+    background: var(--accent-soft);
+  }
+
+  .geo-row.is-on .geo-row__name {
+    font-weight: 700;
+    color: var(--accent-text);
   }
 
   .geo-row + .geo-row {
@@ -342,6 +428,18 @@ const zones = [
     font-variant-numeric: tabular-nums;
     font-size: var(--fs-sm);
     color: var(--text-faint);
+  }
+
+  .geo-answer {
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--accent-soft);
+    border-radius: var(--r-lg);
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+
+  .geo-answer b {
+    color: var(--accent-text);
   }
 
   .geo-none {
@@ -383,6 +481,50 @@ const zones = [
       });
 
       if (none) none.hidden = shown > 0;
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('.geo-layout').forEach((root) => {
+    const zones = [...root.querySelectorAll<HTMLElement>('.geo-zone')];
+    const spots = [...root.querySelectorAll<HTMLElement>('[data-zone][data-name]')];
+    const answer = root.querySelector<HTMLElement>('.geo-answer');
+    if (!zones.length || !spots.length) return;
+
+    const clear = () => {
+      zones.forEach((z) => z.classList.remove('is-lit'));
+      spots.forEach((s) => {
+        s.classList.remove('is-on');
+        s.setAttribute('aria-pressed', 'false');
+      });
+      if (answer) {
+        answer.hidden = true;
+        answer.textContent = '';
+      }
+    };
+
+    spots.forEach((spot) => {
+      spot.setAttribute('aria-pressed', 'false');
+
+      spot.addEventListener('click', () => {
+        const wasOn = spot.classList.contains('is-on');
+        clear();
+        if (wasOn) return;
+
+        spot.classList.add('is-on');
+        spot.setAttribute('aria-pressed', 'true');
+
+        const zone = zones.find((z) => z.dataset.zone === spot.dataset.zone);
+        if (!zone) return;
+        zone.classList.add('is-lit');
+
+        if (answer) {
+          answer.innerHTML = '';
+          const name = document.createElement('b');
+          name.textContent = spot.dataset.name ?? '';
+          answer.append(name, ` — ${zone.dataset.title}: ${zone.dataset.answer}`);
+          answer.hidden = false;
+        }
+      });
     });
   });
 </script>

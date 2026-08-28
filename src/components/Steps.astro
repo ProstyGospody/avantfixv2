@@ -119,8 +119,10 @@ const steps = items ?? STEPS_COPY[CITY.slug];
     width: var(--node);
     height: var(--node);
     border-radius: 50%;
-    background: var(--accent-soft);
-    box-shadow: 0 0 0 6px var(--step-ring, var(--bg));
+    background: var(--bg-raised);
+    box-shadow:
+      0 0 0 6px var(--step-ring, var(--bg)),
+      inset 0 0 0 2px var(--accent);
     font-family: var(--font-display);
     font-size: var(--fs-base);
     font-weight: 800;

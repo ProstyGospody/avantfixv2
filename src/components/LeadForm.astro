@@ -1,7 +1,6 @@
 ---
 import { CITY } from '@/lib/city';
 import { WARRANTY } from '@/config/site';
-import RatingBadge from '@/components/RatingBadge.astro';
 import { telHref, typo } from '@/lib/format';
 
 interface Props {
@@ -121,8 +120,6 @@ const formId = `${id}-form`;
           <li>{WARRANTY.text}</li>
           <li>Оплата после ремонта, чек и гарантийный талон</li>
         </ul>
-
-        <RatingBadge invert class="cta__rate" />
       </div>
 
       <div class="panel panel--section">
@@ -338,10 +335,6 @@ const formId = `${id}-form`;
     line-height: var(--lh-snug);
     color: var(--text-muted);
     max-width: 46ch;
-  }
-
-  .cta :global(.cta__rate) {
-    margin-top: var(--sp-6);
   }
 
   .benefits {
