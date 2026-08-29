@@ -10,9 +10,11 @@ interface Props {
   eager?: boolean;
 
   vivid?: boolean;
+
+  tone?: 'tinted' | 'inverse';
 }
 
-const { brand, scale = 1, eager = false, vivid = false } = Astro.props;
+const { brand, scale = 1, eager = false, vivid = false, tone = 'tinted' } = Astro.props;
 const slug = brandSlug(brand);
 const box = logoBox(slug, scale);
 
@@ -22,7 +24,7 @@ const shift = Math.abs(box.dx) >= 0.5 || Math.abs(box.dy) >= 0.5;
 {
   box.usable ? (
     <img
-      src={`/brands/tinted/${slug}.svg`}
+      src={`/brands/${tone}/${slug}.svg`}
       alt={brand}
       width={box.width}
       height={box.height}

@@ -2,10 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const SRC = 'public/brands';
-const OUT = path.join(SRC, 'tinted');
-
-const TINT = '#666f7d';
-const PAPER = '#ffffff';
+const SETS = [
+  { dir: 'tinted', ink: '#666f7d', paper: '#ffffff' },
+  { dir: 'inverse', ink: '#ffffff', paper: '#1f242c' },
+];
 
 const LIGHT = 0.82;
 
@@ -32,13 +32,13 @@ function parse(color) {
   return null;
 }
 
-const map = (color) => {
+const mapper = (ink, paper) => (color) => {
   const rgb = parse(color);
   if (!rgb) return null;
-  return luminance(...rgb) >= LIGHT ? PAPER : TINT;
+  return luminance(...rgb) >= LIGHT ? paper : ink;
 };
 
-function recolor(svg) {
+function recolor(svg, map, ink) {
   let out = svg;
 
   out = out.replace(/(url\(\s*)?#[0-9a-fA-F]{3,8}\b/g, (m, url) => {
@@ -52,24 +52,28 @@ function recolor(svg) {
   out = out.replace(/rgba?\([^)]+\)/gi, (m) => map(m) ?? m);
 
   out = out.replace(/<svg\b[^>]*>/, (tag) =>
-    /\sfill\s*=/.test(tag) ? tag : tag.replace(/<svg\b/, `<svg fill="${TINT}"`),
+    /\sfill\s*=/.test(tag) ? tag : tag.replace(/<svg\b/, `<svg fill="${ink}"`),
   );
 
   return out;
 }
 
-fs.mkdirSync(OUT, { recursive: true });
-
-let made = 0;
+const files = fs.readdirSync(SRC).filter((f) => f.endsWith('.svg')).sort();
 let bytes = 0;
 
-for (const file of fs.readdirSync(SRC).filter((f) => f.endsWith('.svg')).sort()) {
-  const src = fs.readFileSync(path.join(SRC, file), 'utf8');
-  const out = recolor(src);
-  fs.writeFileSync(path.join(OUT, file), out, 'utf8');
-  made++;
-  bytes += Buffer.byteLength(out);
+for (const set of SETS) {
+  const out = path.join(SRC, set.dir);
+  fs.mkdirSync(out, { recursive: true });
+  const map = mapper(set.ink, set.paper);
+
+  for (const file of files) {
+    const src = fs.readFileSync(path.join(SRC, file), 'utf8');
+    const svg = recolor(src, map, set.ink);
+    fs.writeFileSync(path.join(out, file), svg, 'utf8');
+    bytes += Buffer.byteLength(svg);
+  }
+
+  console.log(`${out} — знаков ${files.length}`);
 }
 
-console.log(`${OUT} — знаков ${made}`);
 console.log(`всего ${(bytes / 1024).toFixed(1)} КБ`);

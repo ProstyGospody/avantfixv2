@@ -103,7 +103,7 @@ const hasActions = Astro.slots.has('actions');
           ]}
         >
           {brand ? (
-            <BrandLogo brand={brand} scale={2.4} vivid eager />
+            <BrandLogo brand={brand} scale={2.4} tone="inverse" vivid eager />
           ) : applianceSlug ? (
             <ApplianceImage
               slug={applianceSlug}
@@ -193,7 +193,7 @@ const hasActions = Astro.slots.has('actions');
 
   .ph__art--logo {
     padding: var(--sp-6) var(--sp-5);
-    background: var(--bg-raised);
+    background: var(--n-800);
   }
 
   .ph__art--logo :global(.brand-logo) {
@@ -219,7 +219,6 @@ const hasActions = Astro.slots.has('actions');
 
     .ph__art--logo:not(.ph__art--stands) {
       margin-inline: calc(var(--sp-5) * -1);
-      border-block: 1px solid var(--line-strong);
     }
 
     .ph__cta {
@@ -282,8 +281,7 @@ const hasActions = Astro.slots.has('actions');
       top: 0;
       width: min(42%, 420px);
       padding-inline: var(--sp-6);
-      background: var(--bg-raised);
-      border-left: 1px solid var(--line-strong);
+      background: var(--n-800);
     }
 
     .ph__art--logo :global(.brand-logo) {
