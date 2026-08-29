@@ -4,6 +4,7 @@ import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import StickyActions from '@/components/StickyActions.astro';
 import Metrika from '@/components/Metrika.astro';
+import CookieNotice from '@/components/CookieNotice.astro';
 import { CITY } from '@/lib/city';
 import { BRAND } from '@/config/site';
 import { absoluteUrl, auditMeta } from '@/lib/seo';
@@ -110,6 +111,7 @@ const jsonLd = graph([localBusiness(CITY), webSite(CITY), ...schema]);
     </main>
     <Footer />
     <StickyActions formHref={formHref} />
+    <CookieNotice />
     <Metrika />
   </body>
 </html>

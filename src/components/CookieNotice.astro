@@ -1,0 +1,84 @@
+---
+---
+
+<div class="cookie" role="region" aria-label="Использование cookie" hidden>
+  <p class="cookie__text">
+    Сайт использует cookie и Яндекс Метрику, чтобы понимать, как им пользуются
+    посетители. Оставаясь на сайте, вы соглашаетесь с этим —
+    {' '}<a href="/politika-konfidencialnosti/#cookie">как и что мы собираем</a>.
+  </p>
+
+  <button class="btn btn--primary cookie__ok" type="button">Хорошо</button>
+</div>
+
+<style>
+  .cookie {
+    position: fixed;
+    left: var(--sp-3);
+    right: var(--sp-3);
+    bottom: var(--sp-3);
+    z-index: 50;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3) var(--sp-5);
+    max-width: 62rem;
+    margin-inline: auto;
+    padding: var(--sp-4) var(--sp-5);
+
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-3);
+  }
+
+  .cookie[hidden] {
+    display: none;
+  }
+
+  .cookie__text {
+    flex: 1 1 20rem;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--text-muted);
+  }
+
+  .cookie__ok {
+    flex: none;
+  }
+
+  @media (max-width: 900px) {
+    .cookie {
+      bottom: calc(var(--sticky-h) + var(--sp-2) + env(safe-area-inset-bottom));
+    }
+  }
+</style>
+
+<script>
+  const KEY = 'avantfix-cookie';
+
+  const stored = (() => {
+    try {
+      return localStorage.getItem(KEY);
+    } catch {
+      return 'off';
+    }
+  })();
+
+  if (!stored) {
+    document.querySelectorAll<HTMLElement>('.cookie').forEach((box) => {
+      box.hidden = false;
+
+      box.querySelector<HTMLButtonElement>('.cookie__ok')?.addEventListener('click', () => {
+        box.hidden = true;
+        try {
+          localStorage.setItem(KEY, '1');
+        } catch {
+          box.hidden = true;
+        }
+      });
+    });
+  }
+</script>
