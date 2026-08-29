@@ -191,6 +191,11 @@ const hasActions = Astro.slots.has('actions');
     object-fit: contain;
   }
 
+  .ph__art--logo {
+    padding: var(--sp-6) var(--sp-5);
+    background: var(--bg-raised);
+  }
+
   .ph__art--logo :global(.brand-logo) {
     max-width: 100%;
     max-height: 120px;
@@ -210,6 +215,11 @@ const hasActions = Astro.slots.has('actions');
     .ph__art:not(.ph__art--stands) {
       order: 1;
       margin: 0;
+    }
+
+    .ph__art--logo:not(.ph__art--stands) {
+      margin-inline: calc(var(--sp-5) * -1);
+      border-block: 1px solid var(--line-strong);
     }
 
     .ph__cta {
@@ -265,6 +275,15 @@ const hasActions = Astro.slots.has('actions');
       max-width: 100%;
       max-height: 100%;
       min-height: 0;
+    }
+
+    .ph__art--logo {
+      right: 0;
+      top: 0;
+      width: min(42%, 420px);
+      padding-inline: var(--sp-6);
+      background: var(--bg-raised);
+      border-left: 1px solid var(--line-strong);
     }
 
     .ph__art--logo :global(.brand-logo) {
