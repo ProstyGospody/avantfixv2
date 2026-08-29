@@ -27,6 +27,64 @@ const png180 = await sharp(Buffer.from(markSvg({ size: 180, color: ACCENT })), {
 fs.writeFileSync('public/apple-touch-icon.png', png180);
 console.log(`public/apple-touch-icon.png — 180×180, ${(png180.length / 1024).toFixed(1)} КБ`);
 
+const ICO_SIZES = [16, 32, 48];
+
+const icoParts = await Promise.all(
+  ICO_SIZES.map((size) =>
+    sharp(Buffer.from(markSvg({ size, color: ACCENT })), { density: 600 })
+      .resize(size, size)
+      .png({ compressionLevel: 9 })
+      .toBuffer(),
+  ),
+);
+
+function ico(parts, sizes) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(parts.length, 4);
+
+  const dir = Buffer.alloc(16 * parts.length);
+  let offset = header.length + dir.length;
+
+  parts.forEach((png, i) => {
+    const at = i * 16;
+    dir.writeUInt8(sizes[i] >= 256 ? 0 : sizes[i], at);
+    dir.writeUInt8(sizes[i] >= 256 ? 0 : sizes[i], at + 1);
+    dir.writeUInt8(0, at + 2);
+    dir.writeUInt8(0, at + 3);
+    dir.writeUInt16LE(1, at + 4);
+    dir.writeUInt16LE(32, at + 6);
+    dir.writeUInt32LE(png.length, at + 8);
+    dir.writeUInt32LE(offset, at + 12);
+    offset += png.length;
+  });
+
+  return Buffer.concat([header, dir, ...parts]);
+}
+
+const icoFile = ico(icoParts, ICO_SIZES);
+fs.writeFileSync('public/favicon.ico', icoFile);
+console.log(`public/favicon.ico — ${ICO_SIZES.join('/')}, ${(icoFile.length / 1024).toFixed(1)} КБ`);
+
+for (const size of [192, 512]) {
+  const inset = Math.round(size * 0.68);
+  const mark = await sharp(Buffer.from(markSvg({ size: inset, color: ACCENT })), { density: 600 })
+    .resize(inset, inset)
+    .png()
+    .toBuffer();
+
+  const icon = await sharp({
+    create: { width: size, height: size, channels: 4, background: '#ffffff' },
+  })
+    .composite([{ input: mark, top: Math.round((size - inset) / 2), left: Math.round((size - inset) / 2) }])
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+
+  fs.writeFileSync(`public/icon-${size}.png`, icon);
+  console.log(`public/icon-${size}.png — ${size}×${size}, ${(icon.length / 1024).toFixed(1)} КБ`);
+}
+
 const W = 1200;
 const H = 630;
 
