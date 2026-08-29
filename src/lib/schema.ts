@@ -28,6 +28,8 @@ export function localBusiness(city: City, opts?: { rating?: { value: number; cou
     name: `${BRAND.name} — ${BRAND.slogan} ${city.inPrep}`,
     alternateName: BRAND.name,
     url: `${origin}/`,
+    logo: `${origin}/icon-512.png`,
+    image: `${origin}/og-default.jpg`,
     telephone: phones,
     email: BRAND.email,
     priceRange: '₽₽',
