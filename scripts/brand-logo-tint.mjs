@@ -3,7 +3,6 @@ import path from 'node:path';
 
 const SRC = 'public/brands';
 const OUT = path.join(SRC, 'tinted');
-const OUT_PATTERN = path.join(SRC, 'pattern');
 
 const TINT = '#666f7d';
 const PAPER = '#ffffff';
@@ -59,43 +58,10 @@ function recolor(svg) {
   return out;
 }
 
-const CELL = { w: 330, h: 210 };
-const MARK_W = 118;
-
-function tile(svg, slug) {
-  const vb = svg.match(/viewBox="([-\d.\s]+)"/);
-  if (!vb) return null;
-  const [vx, vy, vw, vh] = vb[1].trim().split(/\s+/).map(Number);
-  if (!(vw > 0 && vh > 0)) return null;
-
-  const markH = (MARK_W * vh) / vw;
-
-  const inner = svg
-    .replace(/^[\s\S]*?<svg\b[^>]*>/, '')
-    .replace(/<\/svg>\s*$/, '')
-    .trim();
-
-  const rootFill = (svg.match(/<svg\b[^>]*\sfill="([^"]+)"/) ?? [])[1];
-
-  const at = (x, y) =>
-    `<use href="#m-${slug}" x="${x}" y="${y}" width="${MARK_W}" height="${markH.toFixed(1)}" />`;
-
-  return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${CELL.w}" height="${CELL.h}" ` +
-    `viewBox="0 0 ${CELL.w} ${CELL.h}"${rootFill ? ` fill="${rootFill}"` : ''}>` +
-    `<defs><symbol id="m-${slug}" viewBox="${vx} ${vy} ${vw} ${vh}">${inner}</symbol></defs>` +
-    at(28, (CELL.h * 0.16 - markH / 2).toFixed(1)) +
-    at(CELL.w / 2 + 14, (CELL.h * 0.66 - markH / 2).toFixed(1)) +
-    '</svg>\n'
-  );
-}
-
 fs.mkdirSync(OUT, { recursive: true });
-fs.mkdirSync(OUT_PATTERN, { recursive: true });
 
 let made = 0;
 let bytes = 0;
-let tiles = 0;
 
 for (const file of fs.readdirSync(SRC).filter((f) => f.endsWith('.svg')).sort()) {
   const src = fs.readFileSync(path.join(SRC, file), 'utf8');
@@ -103,15 +69,7 @@ for (const file of fs.readdirSync(SRC).filter((f) => f.endsWith('.svg')).sort())
   fs.writeFileSync(path.join(OUT, file), out, 'utf8');
   made++;
   bytes += Buffer.byteLength(out);
-
-  const pattern = tile(out, file.replace(/\.svg$/, ''));
-  if (pattern) {
-    fs.writeFileSync(path.join(OUT_PATTERN, file), pattern, 'utf8');
-    tiles++;
-    bytes += Buffer.byteLength(pattern);
-  }
 }
 
 console.log(`${OUT} — знаков ${made}`);
-console.log(`${OUT_PATTERN} — плиток ${tiles}`);
 console.log(`всего ${(bytes / 1024).toFixed(1)} КБ`);
