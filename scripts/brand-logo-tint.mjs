@@ -4,7 +4,7 @@ import path from 'node:path';
 const SRC = 'public/brands';
 const SETS = [
   { dir: 'tinted', ink: '#666f7d', paper: '#ffffff' },
-  { dir: 'soft', ink: '#666f7d', paper: '#dbe5ff' },
+  { dir: 'soft', ink: '#666f7d', paper: '#f4f6f9' },
 ];
 
 const LIGHT = 0.82;
