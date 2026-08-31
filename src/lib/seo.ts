@@ -1,8 +1,8 @@
 import type { City } from '@/data/cities';
-import { BRAND, DOMAIN } from '@/config/site';
+import { DOMAIN } from '@/config/site';
 import { cityOrigin } from '@/data/cities';
 
-export const TITLE_MAX = 76;
+export const TITLE_MAX = 70;
 export const DESC_MAX = 180;
 
 export function absoluteUrl(path: string, city: City): string {
@@ -12,21 +12,12 @@ export function absoluteUrl(path: string, city: City): string {
 }
 
 export function buildTitle(core: string, ...offers: string[]): string {
-  const brand = ` | ${BRAND.name}`;
-
-  for (const offer of offers) {
-    const full = `${core} — ${offer}${brand}`;
-    if (full.length <= TITLE_MAX) return full;
-  }
-
-  if (core.length + brand.length <= TITLE_MAX) return `${core}${brand}`;
-
   for (const offer of offers) {
     const withOffer = `${core} — ${offer}`;
     if (withOffer.length <= TITLE_MAX) return withOffer;
   }
 
-  return core.slice(0, TITLE_MAX);
+  return core.length <= TITLE_MAX ? core : core.slice(0, TITLE_MAX);
 }
 
 export function auditMeta(title: string, description: string, path: string): void {

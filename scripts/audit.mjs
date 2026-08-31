@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 
-const TITLE_MAX = 76;
+const TITLE_MAX = 70;
 const DESC_MIN = 70;
 const DESC_MAX = 180;
 const PAGE_GZIP_MAX = 60 * 1024;
