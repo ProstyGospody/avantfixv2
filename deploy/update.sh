@@ -96,7 +96,7 @@ for city in "${CITIES[@]}"; do
   link=()
   [[ -n "$prev" ]] && link=(--link-dest="$ROOT/$city/releases/$prev")
   changed=$(mktemp)
-  rsync -ai --delete "${link[@]}" "$REPO/dist/$city/" "$target/" \
+  rsync -aic --delete "${link[@]}" "$REPO/dist/$city/" "$target/" \
     | awk -v host="${HOSTS[$city]}" '
         ($1 ~ /^>f/ || $1 == "*deleting") && $2 ~ /index\.html$/ {
           path = $2
