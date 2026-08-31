@@ -95,9 +95,9 @@ const jsonLd = graph([localBusiness(CITY), webSite(CITY), ...schema]);
       crossorigin
     />
 
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href={absoluteUrl('/favicon.ico', CITY)} type="image/x-icon" sizes="32x32" />
+    <link rel="icon" href={absoluteUrl('/favicon.svg', CITY)} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={absoluteUrl('/apple-touch-icon.png', CITY)} />
     <link rel="manifest" href="/site.webmanifest" />
 
     <script type="application/ld+json" set:html={jsonLd} is:inline />
