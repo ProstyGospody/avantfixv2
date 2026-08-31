@@ -70,7 +70,11 @@ if (props.kind === 'fault') {
   h1 = `${fault.title} ${CITY.inPrep}`;
   crumbName = fault.title;
   path = `${hubHref}${fault.slug}/`;
-  title = buildTitle(fault.title, `ремонт ${CITY.inPrep} от ${price(workPrice)}`);
+  title = buildTitle(
+    fault.title,
+    `ремонт ${CITY.inPrep} от ${price(workPrice)}`,
+    `ремонт ${CITY.inPrep}`,
+  );
 
   const withSymptom =
     `${fault.title} ${CITY.inPrep}: ${fault.symptom}. Цена и сроки ремонта. ` +
