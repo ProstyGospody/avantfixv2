@@ -153,6 +153,10 @@ if [[ ! -f /etc/avantfix/build.env ]]; then
 METRIKA_BELGOROD=$METRIKA_BELGOROD
 METRIKA_OSKOL=$METRIKA_OSKOL
 METRIKA_GUBKIN=$METRIKA_GUBKIN
+
+INDEXNOW_BELGOROD=$(openssl rand -hex 24)
+INDEXNOW_OSKOL=$(openssl rand -hex 24)
+INDEXNOW_GUBKIN=$(openssl rand -hex 24)
 CFG
   chmod 644 /etc/avantfix/build.env
   note "записано в /etc/avantfix/build.env"

@@ -8,6 +8,11 @@ BRANCH="${AVANTFIX_BRANCH:-main}"
 ENV_FILE="${AVANTFIX_ENV:-/etc/avantfix/build.env}"
 KEEP="${AVANTFIX_KEEP:-5}"
 CITIES=(belgorod oskol gubkin)
+declare -A HOSTS=(
+  [belgorod]=avantfix.ru
+  [oskol]=staryj-oskol.avantfix.ru
+  [gubkin]=gubkin.avantfix.ru
+)
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 note() { printf '  %s\n' "$*"; }
@@ -71,8 +76,9 @@ set +a
 
 say "Сборка"
 for city in "${CITIES[@]}"; do
-  var="METRIKA_${city^^}"
-  PUBLIC_METRIKA_ID="${!var:-}" npm run --silent "build:$city"
+  metrika="METRIKA_${city^^}"
+  indexnow="INDEXNOW_${city^^}"
+  PUBLIC_METRIKA_ID="${!metrika:-}" INDEXNOW_KEY="${!indexnow:-}" npm run --silent "build:$city"
   note "$city"
 done
 
@@ -89,9 +95,23 @@ for city in "${CITIES[@]}"; do
   prev=$(ls -1t "$ROOT/$city/releases" 2>/dev/null | head -1 || true)
   link=()
   [[ -n "$prev" ]] && link=(--link-dest="$ROOT/$city/releases/$prev")
-  rsync -a --delete "${link[@]}" "$REPO/dist/$city/" "$target/"
+  changed=$(mktemp)
+  rsync -ai --delete "${link[@]}" "$REPO/dist/$city/" "$target/" \
+    | awk -v host="${HOSTS[$city]}" '
+        ($1 ~ /^>f/ || $1 == "*deleting") && $2 ~ /index\.html$/ {
+          path = $2
+          sub(/index\.html$/, "", path)
+          print "https://" host "/" path
+        }' > "$changed"
+
   switch_to "$city" "$target"
   note "$city → $STAMP"
+
+  indexnow="INDEXNOW_${city^^}"
+  if [[ -n "${!indexnow:-}" ]]; then
+    node "$REPO/deploy/indexnow.mjs" "${HOSTS[$city]}" "${!indexnow}" < "$changed" || true
+  fi
+  rm -f "$changed"
 done
 
 say "Чистка"
